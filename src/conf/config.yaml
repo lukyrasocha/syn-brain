@@ -1,0 +1,21 @@
+
+# Wandb settings
+wandb:
+  project: "text-to-medical-images"
+
+# Model parameters
+model:
+  architecture: "VLM"
+
+# Hyperparameters
+hyperparams:
+  learning_rate: 0.02
+
+# Dataset settings
+data:
+  dataset: "braaaaaain"
+
+# Training parameters
+training:
+  epochs: 10
+  batch_size: 32 

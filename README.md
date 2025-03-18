@@ -6,6 +6,38 @@
 
 Generate medical images from text
 
+## Setup
+
+### Conda
+
+```bash
+conda create -n brain python=3.11
+conda activate brain
+```
+
+### Install dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### Wandb
+
+You can find your API key in [wandb.ai/authorize](https://wandb.ai/authorize)
+
+```bash
+wandb login
+```
+Paste your API key in the prompt.
+
+
+
+
+
+
+
+
+
 ## Project Organization
 
 ```

@@ -2,3 +2,7 @@ pip
 python-dotenv
 ruff
 -e .
+
+wandb
+hydra-core
+omegaconf
