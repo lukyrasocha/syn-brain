@@ -15,12 +15,7 @@ diffusers
 torch
 transformers
 matplotlib
-<<<<<<< HEAD
 peft
 
-datasets
-torchvision
-=======
 loguru
 rarfile
->>>>>>> 996aeaa27c4337fff251d37767b939c675f436a8
