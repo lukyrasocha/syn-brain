@@ -10,6 +10,7 @@ model:
 # Hyperparameters
 hyperparams:
   learning_rate: 0.02
+  rank: 5 
 
 # Dataset settings
 data:

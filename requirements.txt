@@ -15,3 +15,7 @@ diffusers
 torch
 transformers
 matplotlib
+peft
+
+datasets
+torchvision
