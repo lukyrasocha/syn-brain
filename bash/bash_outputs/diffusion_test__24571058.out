@@ -1,0 +1,77 @@
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@hpc.dtu.dk>
+Subject: Job 24571058: <diffusion_test> in cluster <dcc> Done
+
+Job <diffusion_test> was submitted from host <hpclogin1> by user <s240577> in cluster <dcc> at Fri Apr  4 19:54:31 2025
+Job was executed on host(s) <4*n-62-20-5>, in queue <gpuv100>, as user <s240577> in cluster <dcc> at Fri Apr  4 19:57:53 2025
+</zhome/20/1/209339> was used as the home directory.
+</dtu/blackhole/1b/209339/text-to-image-generation-in-the-medical-domain> was used as the working directory.
+Started at Fri Apr  4 19:57:53 2025
+Terminated at Fri Apr  4 19:58:21 2025
+Results reported at Fri Apr  4 19:58:21 2025
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/bin/bash
+
+### -- set the job Name -- 
+#BSUB -J diffusion_test
+
+### -- specify queue --
+#BSUB -q gpuv100
+
+### -- set walltime limit: hh:mm -- 
+#BSUB -W 10
+
+# request GB of system-memory per core
+#BSUB -R "rusage[mem=5GB]"
+
+### -- Select the resources: 1 gpu in exclusive process mode --
+#BSUB -gpu "num=1:mode=exclusive_process"
+
+### -- ask for number of cores (default: 1) --
+#BSUB -n 4
+
+### -- specify that the cores must be on the same host -- 
+#BSUB -R "span[hosts=1]"
+
+### -- Specify the output and error file. %J is the job-id -- 
+### -- -o and -e mean append, -oo and -eo mean overwrite -- 
+#BSUB -o bash/bash_outputs/diffusion_test__%J.out
+#BSUB -e bash/bash_outputs/diffusion_test__%J.err
+
+### -- Need to activate the python environment --
+
+conda activate brain
+
+### -- run in the job --
+python src/diffusion_model.py 
+
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   25.85 sec.
+    Max Memory :                                 2483 MB
+    Average Memory :                             1754.00 MB
+    Total Requested Memory :                     20480.00 MB
+    Delta Memory :                               17997.00 MB
+    Max Swap :                                   -
+    Max Processes :                              4
+    Max Threads :                                8
+    Run time :                                   29 sec.
+    Turnaround time :                            230 sec.
+
+The output (if any) is above this job summary.
+
+
+
+PS:
+
+Read file <bash/bash_outputs/diffusion_test__24571058.err> for stderr output of this job.
+

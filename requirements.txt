@@ -3,6 +3,15 @@ python-dotenv
 ruff
 -e .
 
+
+invisible_watermark 
+transformers 
+accelerate 
+safetensors
 wandb
 hydra-core
 omegaconf
+diffusers 
+torch
+transformers
+matplotlib
