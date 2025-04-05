@@ -15,3 +15,5 @@ diffusers
 torch
 transformers
 matplotlib
+loguru
+rarfile
