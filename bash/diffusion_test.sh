@@ -30,4 +30,4 @@
 conda activate brain
 
 ### -- run in the job --
-python src/diffusion_model.py 
+python src/models.py
