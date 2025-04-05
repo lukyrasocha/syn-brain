@@ -10,7 +10,7 @@
 #BSUB -W 10
 
 # request GB of system-memory per core
-#BSUB -R "rusage[mem=5GB]"
+#BSUB -R "rusage[mem=10GB]"
 
 ### -- Select the resources: 1 gpu in exclusive process mode --
 #BSUB -gpu "num=1:mode=exclusive_process"
@@ -27,7 +27,6 @@
 #BSUB -e bash/bash_outputs/diffusion_test__%J.err
 
 ### -- Need to activate the python environment --
-
 conda activate brain
 
 ### -- run in the job --

@@ -15,5 +15,6 @@ diffusers
 torch
 transformers
 matplotlib
+peft
 loguru
 torchvision
