@@ -16,4 +16,4 @@ torch
 transformers
 matplotlib
 loguru
-rarfile
+torchvision
