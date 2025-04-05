@@ -18,5 +18,6 @@ matplotlib
 peft
 hf_xet
 
+
 loguru
-rarfile
+torchvision
