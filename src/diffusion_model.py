@@ -1,89 +1,119 @@
 import torch
-from datasets import load_dataset
-from diffusers import StableDiffusionXLPipeline
+from diffusers import DiffusionPipeline,  UNet2DConditionModel
+from matplotlib import pyplot as plt
 from peft import get_peft_model, LoraConfig
-from PIL import Image
-from torchvision import transforms
 
-# Load dataset from Hugging Face
-dataset = load_dataset("lambdalabs/pokemon-blip-captions", split="train")
+def check_learnable_parameters(pipe):
+    print('\nCHECK FOR LEARNABLE PARAMETERS\n')
+    # List of component names to check
+    components_to_check = [
+        "text_encoder",
+        "text_encoder_2",
+        "tokenizer",
+        "tokenizer_2",
+        "unet",
+        "vae",
+        "image_encoder",
+        "scheduler",
+        "feature_extractor"
+    ]
 
-# Preprocessing
-preprocess = transforms.Compose([
-    transforms.Resize((1024, 1024)),
-    transforms.ToTensor(),
-    transforms.Normalize([0.5], [0.5]),
-])
+    print("Learnable parameters per component:\n")
 
-# Load Stable Diffusion XL with LoRA-ready UNet
-pipe = StableDiffusionXLPipeline.from_pretrained(
-    "stabilityai/stable-diffusion-xl-base-1.0",
-    torch_dtype=torch.float16,
-    variant="fp16",
-    use_safetensors=True
-).to("cuda")
+    for name in components_to_check:
+        component = getattr(pipe, name, None)
+        if component is None:
+            continue
 
-# Apply LoRA to UNet
-lora_config = LoraConfig(
-    r=4,
-    lora_alpha=16,
-    target_modules=["to_q", "to_k", "to_v", "to_out"],
-    lora_dropout=0.1,
-    bias="none",
-    task_type="text-to-image"
-)
-pipe.unet = get_peft_model(pipe.unet, lora_config)
+        params = list(component.parameters()) if hasattr(component, "parameters") else []
+        learnable = [p for p in params if p.requires_grad]
 
-# Optimizer
-optimizer = torch.optim.Adam(pipe.unet.parameters(), lr=1e-5)
+        print(f"{name}: {len(learnable)} learnable parameters")
 
-# Tiny training loop (1 epoch, 10 samples)
-for i, example in enumerate(dataset.select(range(10))):  # Only first 10 samples
-    caption = example["text"]
-    image = Image.open(example["image"]).convert("RGB")
-    image_tensor = preprocess(image).unsqueeze(0).to("cuda").half()
-
-    # Encode image → latents
-    latents = pipe.vae.encode(image_tensor).latent_dist.sample()
-    noise = torch.randn_like(latents)
-    noisy_latents = latents + noise
-
-    # Encode caption → embeddings
-    text_inputs = pipe.tokenizer(caption, return_tensors="pt").input_ids.to("cuda")
-    prompt_embeds = pipe.text_encoder(text_inputs)[0]
-
-    # UNet prediction
-    noise_pred = pipe.unet(noisy_latents, torch.tensor([0.0]).to("cuda"), encoder_hidden_states=prompt_embeds).sample
-
-    # Loss
-    loss = torch.nn.functional.mse_loss(noise_pred, noise)
-    loss.backward()
-    optimizer.step()
-    optimizer.zero_grad()
-
-    print(f"[{i}] Prompt: {caption} | Loss: {loss.item():.4f}")
-
-# import torch
-# from diffusers import DiffusionPipeline
-# from matplotlib import pyplot as plt
-# from accelerate.utils import write_basic_config
-
-# if __name__ == '__main__':
+        # Optional: print total count
+        total_params = sum(p.numel() for p in learnable)
+        if total_params > 0:
+            print(f"    Total learnable parameters: {total_params:,}")
 
 
-#     pipe = DiffusionPipeline.from_pretrained(
-#         "stabilityai/stable-diffusion-xl-base-1.0", # model name
-#         torch_dtype=torch.float16,                  # load as 16-bit floating point for faster inference
-#         use_safetensors=True,                       # a safe and fast way of loading the model
-#         variant="fp16"                              # stands for "floating point 16-bit"
-#         ).to("cuda")
+    print(" check if some parameters is set to true_grad")
+    has_grad = False
 
-#     prompt = "A high-resolution black and white MRI scan of a human brain, axial view, showing detailed brain structures with realistic textures and contrast. Medical imaging style, realistic lighting, and high anatomical accuracy."
-#     images = pipe(prompt=prompt).images[0]
+    for name, module in pipe.components.items():
+        if hasattr(module, "parameters"):
+            for param in module.parameters():
+                if param.requires_grad:
+                    print(f"✅ `{name}` has parameters with `requires_grad=True`")
+                    has_grad = True
+                    break  # no need to keep checking this module
+
+    if not has_grad:
+        print("❌ No modules have trainable (requires_grad=True) parameters.")
+
+def freez_learnable_parameters(pipe):
+    print('\nFREEZ LEARNABLE PARAMETERS\n')
+    # Freeze parameters for specific components
+    components_to_freeze = ["vae", "text_encoder", "text_encoder_2", "unet"]
+
+    for name in components_to_freeze:
+        component = getattr(pipe, name, None)
+        if component is not None:
+            for param in component.parameters():
+                param.requires_grad = False
+
+    # Verify that parameters are frozen
+    print("Learnable parameters per component:\n")
+    for name in components_to_freeze:
+        component = getattr(pipe, name, None)
+        if component is None:
+            continue
+
+        params = list(component.parameters()) if hasattr(component, "parameters") else []
+        learnable = [p for p in params if p.requires_grad]
+
+        print(f"{name}: {len(learnable)} learnable parameters")
+
+
+
+if __name__ == '__main__':
+    # https://github.com/huggingface/diffusers/blob/main/examples/text_to_image/train_text_to_image_lora.py
+
+    pipe = DiffusionPipeline.from_pretrained(
+                "stabilityai/stable-diffusion-xl-base-1.0", # model name
+                torch_dtype=torch.float16,                  # load as 16-bit floating point for faster inference
+                use_safetensors=True,                       # a safe and fast way of loading the model
+                variant="fp16"                              # stands for "floating point 16-bit"
+            ).to("cuda")
+    print(f'The pipeline for the model is:\n{pipe}\n')
+    check_learnable_parameters(pipe)    # check which parameters is set to require_grad = true
+    freez_learnable_parameters(pipe)    # Freez all the parameters    
+    check_learnable_parameters(pipe)    # check that the function above worked    
+
+    # Apply LoRA to UNet 
+    unet_lora_config = LoraConfig(
+        r=1,
+        lora_alpha=3,
+        init_lora_weights="gaussian",
+        target_modules=["to_k", "to_q", "to_v", "to_out.0"],
+    )
+    pipe.unet.add_adapter(unet_lora_config)
+    check_learnable_parameters(pipe)    # check that the function above worked    
+
+    print('train')
+    pipe.unet.train()
+    check_learnable_parameters(pipe)
+
+    print('eval')
+    with torch.no_grad():
+        pipe.unet.eval()
+        check_learnable_parameters(pipe)
+    # prompt = "A high-resolution black and white MRI scan of a human brain, axial view, showing detailed brain structures with realistic textures and contrast. Medical imaging style, realistic lighting, and high anatomical accuracy."
+    # images = pipe(prompt=prompt).images[0]
     
-#     plt.imshow(images)
-#     plt.axis('off')  
-#     plt.savefig('test_displayed.png', bbox_inches='tight', pad_inches=0)  #
+
+    # plt.imshow(images)
+    # plt.axis('off')  
+    # plt.savefig('test_displayed.png', bbox_inches='tight', pad_inches=0)  #
 
 
 

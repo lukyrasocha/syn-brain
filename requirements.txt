@@ -16,6 +16,7 @@ torch
 transformers
 matplotlib
 peft
+hf_xet
 
 loguru
 rarfile
