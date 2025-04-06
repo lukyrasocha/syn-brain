@@ -1,11 +1,12 @@
 pip
 python-dotenv
-ruff
+#ruff
 -e .
 
 
 invisible_watermark 
-transformers 
+#transformers 
+transformers==4.36.2
 accelerate 
 safetensors
 wandb
@@ -30,8 +31,9 @@ shortuuid
 bitsandbytes==0.41.0
 pydantic<2,>=1
 markdown2[all]
-protobuf
-numpy
+#protobuf
+protobuf==3.20.3
+numpy==1.23.5
 scikit-learn==1.2.2
 requests
 httpx==0.24.0
