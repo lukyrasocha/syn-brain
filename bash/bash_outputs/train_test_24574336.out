@@ -12,17 +12,7 @@ model output shape:torch.Size([10, 4, 64, 64])
 0.13025
 noise shape: torch.Size([10, 4, 64, 64])
 bsz: 10
-timesteps: tensor([649, 385,  64, 417, 496, 920, 945, 612, 873, 994], device='cuda:0')
-here tensor([[1536., 1536.]], device='cuda:0')
-here tensor([[1536., 1536.]], device='cuda:0')
-here tensor([[1536., 1536.]], device='cuda:0')
-here tensor([[1536., 1536.]], device='cuda:0')
-here tensor([[1536., 1536.]], device='cuda:0')
-here tensor([[1536., 1536.]], device='cuda:0')
-here tensor([[1536., 1536.]], device='cuda:0')
-here tensor([[1536., 1536.]], device='cuda:0')
-here tensor([[1536., 1536.]], device='cuda:0')
-here tensor([[1536., 1536.]], device='cuda:0')
+timesteps: tensor([577, 794, 472, 250, 100, 237, 209, 645, 251, 657], device='cuda:0')
 add time ids cat: tensor([[1536., 1536.],
         [1536., 1536.],
         [1536., 1536.],
@@ -33,22 +23,20 @@ add time ids cat: tensor([[1536., 1536.],
         [1536., 1536.],
         [1536., 1536.],
         [1536., 1536.]], device='cuda:0')
-here
 Prompt Embeds shape before reshape: torch.Size([10, 77, 2048])
 Pooled Prompt Embeds shape before reshape: torch.Size([10, 1280])
-Prompt Embeds shape after mean pooling: torch.Size([10, 2048])
 
 ------------------------------------------------------------
 Sender: LSF System <lsfadmin@hpc.dtu.dk>
-Subject: Job 24574255: <train_test> in cluster <dcc> Exited
+Subject: Job 24574336: <train_test> in cluster <dcc> Exited
 
-Job <train_test> was submitted from host <hpclogin1> by user <s240577> in cluster <dcc> at Sun Apr  6 17:22:52 2025
-Job was executed on host(s) <4*n-62-20-2>, in queue <gpuv100>, as user <s240577> in cluster <dcc> at Sun Apr  6 17:22:52 2025
+Job <train_test> was submitted from host <hpclogin1> by user <s240577> in cluster <dcc> at Sun Apr  6 17:44:42 2025
+Job was executed on host(s) <4*n-62-20-4>, in queue <gpuv100>, as user <s240577> in cluster <dcc> at Sun Apr  6 17:44:44 2025
 </zhome/20/1/209339> was used as the home directory.
 </dtu/blackhole/1b/209339/text-to-image-generation-in-the-medical-domain> was used as the working directory.
-Started at Sun Apr  6 17:22:52 2025
-Terminated at Sun Apr  6 17:23:07 2025
-Results reported at Sun Apr  6 17:23:07 2025
+Started at Sun Apr  6 17:44:44 2025
+Terminated at Sun Apr  6 17:44:58 2025
+Results reported at Sun Apr  6 17:44:58 2025
 
 Your job looked like:
 
@@ -94,16 +82,16 @@ Exited with exit code 1.
 
 Resource usage summary:
 
-    CPU time :                                   12.34 sec.
-    Max Memory :                                 2335 MB
-    Average Memory :                             2335.00 MB
+    CPU time :                                   11.68 sec.
+    Max Memory :                                 2500 MB
+    Average Memory :                             2500.00 MB
     Total Requested Memory :                     4096.00 MB
-    Delta Memory :                               1761.00 MB
+    Delta Memory :                               1596.00 MB
     Max Swap :                                   -
     Max Processes :                              4
     Max Threads :                                8
-    Run time :                                   68 sec.
-    Turnaround time :                            15 sec.
+    Run time :                                   94 sec.
+    Turnaround time :                            16 sec.
 
 The output (if any) is above this job summary.
 
@@ -111,5 +99,5 @@ The output (if any) is above this job summary.
 
 PS:
 
-Read file <bash/bash_outputs/train_test_24574255.err> for stderr output of this job.
+Read file <bash/bash_outputs/train_test_24574336.err> for stderr output of this job.
 

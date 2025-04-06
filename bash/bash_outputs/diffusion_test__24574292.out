@@ -8,7 +8,7 @@ text_encoder: 0 learnable parameters
 text_encoder_2: 0 learnable parameters
 unet: 0 learnable parameters
 <class 'transformers.models.clip.tokenization_clip.CLIPTokenizer'>
-<class 'transformers.models.clip.tokenization_clip_fast.CLIPTokenizerFast'>
+<class 'transformers.models.clip.tokenization_clip.CLIPTokenizer'>
 StableDiffusionXLPipeline {
   "_class_name": "StableDiffusionXLPipeline",
   "_diffusers_version": "0.32.2",
@@ -40,7 +40,7 @@ StableDiffusionXLPipeline {
   ],
   "tokenizer_2": [
     "transformers",
-    "CLIPTokenizerFast"
+    "CLIPTokenizer"
   ],
   "unet": [
     "diffusers",
@@ -90,15 +90,15 @@ Check if multiple data types are used in the same module:
 
 ------------------------------------------------------------
 Sender: LSF System <lsfadmin@hpc.dtu.dk>
-Subject: Job 24573939: <diffusion_test> in cluster <dcc> Done
+Subject: Job 24574292: <diffusion_test> in cluster <dcc> Done
 
-Job <diffusion_test> was submitted from host <hpclogin1> by user <s240577> in cluster <dcc> at Sun Apr  6 15:49:12 2025
-Job was executed on host(s) <4*n-62-20-2>, in queue <gpuv100>, as user <s240577> in cluster <dcc> at Sun Apr  6 15:51:14 2025
+Job <diffusion_test> was submitted from host <hpclogin1> by user <s240577> in cluster <dcc> at Sun Apr  6 17:31:28 2025
+Job was executed on host(s) <4*n-62-20-2>, in queue <gpuv100>, as user <s240577> in cluster <dcc> at Sun Apr  6 17:31:30 2025
 </zhome/20/1/209339> was used as the home directory.
 </dtu/blackhole/1b/209339/text-to-image-generation-in-the-medical-domain> was used as the working directory.
-Started at Sun Apr  6 15:51:14 2025
-Terminated at Sun Apr  6 15:51:31 2025
-Results reported at Sun Apr  6 15:51:31 2025
+Started at Sun Apr  6 17:31:30 2025
+Terminated at Sun Apr  6 17:31:44 2025
+Results reported at Sun Apr  6 17:31:44 2025
 
 Your job looked like:
 
@@ -144,16 +144,16 @@ Successfully completed.
 
 Resource usage summary:
 
-    CPU time :                                   11.77 sec.
-    Max Memory :                                 2326 MB
-    Average Memory :                             2326.00 MB
+    CPU time :                                   11.68 sec.
+    Max Memory :                                 2525 MB
+    Average Memory :                             2525.00 MB
     Total Requested Memory :                     40960.00 MB
-    Delta Memory :                               38634.00 MB
+    Delta Memory :                               38435.00 MB
     Max Swap :                                   -
     Max Processes :                              4
-    Max Threads :                                8
-    Run time :                                   17 sec.
-    Turnaround time :                            139 sec.
+    Max Threads :                                7
+    Run time :                                   72 sec.
+    Turnaround time :                            16 sec.
 
 The output (if any) is above this job summary.
 
@@ -161,5 +161,5 @@ The output (if any) is above this job summary.
 
 PS:
 
-Read file <bash/bash_outputs/diffusion_test__24573939.err> for stderr output of this job.
+Read file <bash/bash_outputs/diffusion_test__24574292.err> for stderr output of this job.
 
