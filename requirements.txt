@@ -21,3 +21,23 @@ hf_xet
 
 loguru
 torchvision
+
+# Coppied from llava
+
+tokenizers>=0.15.0
+sentencepiece==0.1.99
+shortuuid
+bitsandbytes==0.41.0
+pydantic<2,>=1
+markdown2[all]
+protobuf
+numpy
+scikit-learn==1.2.2
+requests
+httpx==0.24.0
+einops==0.6.1
+einops-exts==0.0.4
+timm==0.9.12
+tiktoken
+openai==1.12.0
+backoff
