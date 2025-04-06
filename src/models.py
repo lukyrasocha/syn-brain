@@ -1,8 +1,9 @@
 
 import torch
-from diffusers import DiffusionPipeline,  UNet2DConditionModel
+from diffusers import DiffusionPipeline,  DDPMScheduler
 from peft import LoraConfig
 from utils import check_parameter_dtypes, check_learnable_parameters, cast_training_params, freez_learnable_parameters
+from transformers import CLIPTokenizerFast
 
 def stable_diffusion_model(device):
     pipe = DiffusionPipeline.from_pretrained(
@@ -21,10 +22,19 @@ def stable_diffusion_model(device):
 
     pipe.unet.add_adapter(unet_lora_config)
     cast_training_params(pipe.unet, dtype=torch.float32)
-    return pipe
+
+    noise_scheduler = DDPMScheduler.from_pretrained(
+        "stabilityai/stable-diffusion-xl-base-1.0", subfolder="scheduler"
+    )
+
+    return pipe, noise_scheduler
+
+    
 
 if __name__ == '__main__':
-    model = stable_diffusion_model('cuda')
+    model, noise_scheduler = stable_diffusion_model('cuda')
+    print(type(model.tokenizer))      # should be transformers.CLIPTokenizer
+    print(type(model.tokenizer_2))    # should be transformers.CLIPTokenizerFast
     print(model)
     check_learnable_parameters(model)
     check_parameter_dtypes(model)

@@ -1,0 +1,165 @@
+
+FREEZ LEARNABLE PARAMETERS
+
+Learnable parameters per component:
+
+vae: 0 learnable parameters
+text_encoder: 0 learnable parameters
+text_encoder_2: 0 learnable parameters
+unet: 0 learnable parameters
+<class 'transformers.models.clip.tokenization_clip.CLIPTokenizer'>
+<class 'transformers.models.clip.tokenization_clip_fast.CLIPTokenizerFast'>
+StableDiffusionXLPipeline {
+  "_class_name": "StableDiffusionXLPipeline",
+  "_diffusers_version": "0.32.2",
+  "_name_or_path": "stabilityai/stable-diffusion-xl-base-1.0",
+  "feature_extractor": [
+    null,
+    null
+  ],
+  "force_zeros_for_empty_prompt": true,
+  "image_encoder": [
+    null,
+    null
+  ],
+  "scheduler": [
+    "diffusers",
+    "EulerDiscreteScheduler"
+  ],
+  "text_encoder": [
+    "transformers",
+    "CLIPTextModel"
+  ],
+  "text_encoder_2": [
+    "transformers",
+    "CLIPTextModelWithProjection"
+  ],
+  "tokenizer": [
+    "transformers",
+    "CLIPTokenizer"
+  ],
+  "tokenizer_2": [
+    "transformers",
+    "CLIPTokenizerFast"
+  ],
+  "unet": [
+    "diffusers",
+    "UNet2DConditionModel"
+  ],
+  "vae": [
+    "diffusers",
+    "AutoencoderKL"
+  ]
+}
+
+
+CHECK FOR LEARNABLE PARAMETERS
+
+Learnable parameters per component:
+
+text_encoder: 0 learnable parameters
+text_encoder_2: 0 learnable parameters
+tokenizer: 0 learnable parameters
+tokenizer_2: 0 learnable parameters
+unet: 1120 learnable parameters
+    Total learnable parameters: 1,451,520
+vae: 0 learnable parameters
+scheduler: 0 learnable parameters
+ check if some parameters is set to true_grad
+✅ `unet` has parameters with `requires_grad=True`
+
+CHECK FOR PARAMETER DATA TYPES
+
+Data types per component:
+
+text_encoder:
+    torch.float16: 196 parameters
+text_encoder_2:
+    torch.float16: 517 parameters
+unet:
+    torch.float16: 1680 parameters
+    torch.float32: 1120 parameters
+vae:
+    torch.float16: 248 parameters
+
+Check if multiple data types are used in the same module:
+✅ `vae` has parameters with a single data type: {torch.float16}
+✅ `text_encoder` has parameters with a single data type: {torch.float16}
+✅ `text_encoder_2` has parameters with a single data type: {torch.float16}
+    `unet` has parameters with multiple data types: {torch.float16, torch.float32}
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@hpc.dtu.dk>
+Subject: Job 24573939: <diffusion_test> in cluster <dcc> Done
+
+Job <diffusion_test> was submitted from host <hpclogin1> by user <s240577> in cluster <dcc> at Sun Apr  6 15:49:12 2025
+Job was executed on host(s) <4*n-62-20-2>, in queue <gpuv100>, as user <s240577> in cluster <dcc> at Sun Apr  6 15:51:14 2025
+</zhome/20/1/209339> was used as the home directory.
+</dtu/blackhole/1b/209339/text-to-image-generation-in-the-medical-domain> was used as the working directory.
+Started at Sun Apr  6 15:51:14 2025
+Terminated at Sun Apr  6 15:51:31 2025
+Results reported at Sun Apr  6 15:51:31 2025
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/bin/bash
+
+### -- set the job Name -- 
+#BSUB -J diffusion_test
+
+### -- specify queue --
+#BSUB -q gpuv100
+
+### -- set walltime limit: hh:mm -- 
+#BSUB -W 10
+
+# request GB of system-memory per core
+#BSUB -R "rusage[mem=10GB]"
+
+### -- Select the resources: 1 gpu in exclusive process mode --
+#BSUB -gpu "num=1:mode=exclusive_process"
+
+### -- ask for number of cores (default: 1) --
+#BSUB -n 4
+
+### -- specify that the cores must be on the same host -- 
+#BSUB -R "span[hosts=1]"
+
+### -- Specify the output and error file. %J is the job-id -- 
+### -- -o and -e mean append, -oo and -eo mean overwrite -- 
+#BSUB -o bash/bash_outputs/diffusion_test__%J.out
+#BSUB -e bash/bash_outputs/diffusion_test__%J.err
+
+### -- Need to activate the python environment --
+conda activate brain
+
+### -- run in the job --
+python src/models.py
+
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   11.77 sec.
+    Max Memory :                                 2326 MB
+    Average Memory :                             2326.00 MB
+    Total Requested Memory :                     40960.00 MB
+    Delta Memory :                               38634.00 MB
+    Max Swap :                                   -
+    Max Processes :                              4
+    Max Threads :                                8
+    Run time :                                   17 sec.
+    Turnaround time :                            139 sec.
+
+The output (if any) is above this job summary.
+
+
+
+PS:
+
+Read file <bash/bash_outputs/diffusion_test__24573939.err> for stderr output of this job.
+
