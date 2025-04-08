@@ -1,0 +1,18 @@
+[
+    {
+      "image": "glioma_0001.jpg",
+      "text": "A grayscale MRI scan showing a glioma tumor."
+    },
+    {
+      "image": "meningioma_0012.jpg",
+      "text": "A grayscale MRI scan showing a meningioma tumor."
+    },
+    {
+      "image": "notumor_0077.jpg",
+      "text": "A grayscale MRI scan of a healthy human brain without a tumor."
+    },
+    {
+      "image": "pituitary_0101.jpg",
+      "text": "A grayscale MRI scan showing a pituitary tumor."
+    }
+]
