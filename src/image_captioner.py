@@ -4,6 +4,7 @@ MODEL_ID = "google/gemma-3-27b-it"
 
 # Prompt for image captioning - modify this to change what kind of captions you get
 CAPTION_PROMPT = "Describe this MRI scan as if you were explaining it to a visual artist who is recreating the scene. Focus on visible shapes, textures, contrasts, and spatial features. Use layman-friendly terms where possible. Include details like the tumor’s size, position, brightness, and how it alters the normal brain structure. Output the description in natural, vivid, visual language suitable as input to a general image generation AI model."
+#CAPTION_PROMPT = "Describe this brain MRI for image generation: mention tumor size, shape, location, contrast, and any brain deformation, using vivid, simple, visual language. Max 77 tokens, so keep it short and precise."
 # =====================================
 
 import os
@@ -170,11 +171,15 @@ def main():
         caption = caption_image(
             image_path, model, processor, args.prompt, args.max_new_tokens
         )
+        
+        class_name = image_name.split("_")[0]
 
         # Append result to the list
         results.append({
             "image": image_name,
-            "text": caption
+            "text": caption,
+            "class": class_name,
+            "path": image_path
         })
 
     # Save all results to a single JSON file

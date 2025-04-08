@@ -6,8 +6,8 @@ python-dotenv
 
 invisible_watermark 
 #transformers 
-transformers==4.36.2
-accelerate 
+#transformers==4.36.2
+#accelerate 
 safetensors
 wandb
 hydra-core
@@ -43,3 +43,10 @@ timm==0.9.12
 tiktoken
 openai==1.12.0
 backoff
+
+
+
+
+accelerate==1.5.2
+transformers==4.50.1
+opencv-python==4.11.0.86
