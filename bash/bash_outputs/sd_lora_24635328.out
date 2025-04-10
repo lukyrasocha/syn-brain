@@ -1,0 +1,78 @@
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@hpc.dtu.dk>
+Subject: Job 24635328: <sd_lora> in cluster <dcc> Exited
+
+Job <sd_lora> was submitted from host <hpclogin1> by user <s240577> in cluster <dcc> at Thu Apr 10 18:09:15 2025
+Job was executed on host(s) <4*n-62-20-11>, in queue <gpuv100>, as user <s240577> in cluster <dcc> at Thu Apr 10 18:59:52 2025
+</zhome/20/1/209339> was used as the home directory.
+</dtu/blackhole/1b/209339/text-to-image-generation-in-the-medical-domain> was used as the working directory.
+Started at Thu Apr 10 18:59:52 2025
+Terminated at Thu Apr 10 19:00:05 2025
+Results reported at Thu Apr 10 19:00:05 2025
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/bin/bash
+
+#BSUB -J sd_lora
+#BSUB -q gpuv100
+#BSUB -W 00:15
+#BSUB -R "rusage[mem=10GB]"
+#BSUB -gpu "num=1"
+#BSUB -n 4
+#BSUB -R "span[hosts=1]"
+#BSUB -o bash/bash_outputs/sd_lora_%J.out
+#BSUB -e bash/bash_outputs/sd_lora_%J.err
+
+# initialize conda in the script
+source activate base
+conda activate brain
+
+# The following shows how to use the accelerate denpending on the hardware  https://github.com/huggingface/accelerate/tree/main/examples
+python src/train_text_to_image_lora.py \
+    --pretrained_model_name_or_path="stable-diffusion-v1-5/stable-diffusion-v1-5" \
+    --dataset_name 'lambdalabs/naruto-blip-captions' \
+    --output_dir "models/sd-naruto-model-lora" \
+    # --num_train_epochs 1 \
+    # --variant 'fp16' \
+    # --resolution 512 \
+    # --train_batch_size 16 \
+    # --learning_rate 1e-4 \
+    # --lr_scheduler 'constant' \
+    # --lr_warmup_steps 500 \
+    # --dataloader_num_workers 4 \
+    # --adam_beta1 0.9 \
+    # --adam_beta2 0.999 \
+    # --adam_weight_decay 1e-2 \
+    # --adam_epsilon 1e-08 \
+    # --max_grad_norm 1 \
+    # --prediction_type 'epsilon' \ 
+    # # --report_to wandb \
+------------------------------------------------------------
+
+Exited with exit code 1.
+
+Resource usage summary:
+
+    CPU time :                                   9.27 sec.
+    Max Memory :                                 -
+    Average Memory :                             -
+    Total Requested Memory :                     40960.00 MB
+    Delta Memory :                               -
+    Max Swap :                                   -
+    Max Processes :                              -
+    Max Threads :                                -
+    Run time :                                   0 sec.
+    Turnaround time :                            3050 sec.
+
+The output (if any) is above this job summary.
+
+
+
+PS:
+
+Read file <bash/bash_outputs/sd_lora_24635328.err> for stderr output of this job.
+

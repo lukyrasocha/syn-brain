@@ -1,33 +1,36 @@
 #!/bin/bash
 
-### -- set the job Name -- 
-#BSUB -J train_test
-
-### -- specify queue --
+#BSUB -J sd_lora
 #BSUB -q gpuv100
-
-### -- set walltime limit: hh:mm -- 
-#BSUB -W 10
-
-# request GB of system-memory per core
-#BSUB -R "rusage[mem=1GB]"
-
-### -- Select the resources: 1 gpu in exclusive process mode --
-#BSUB -gpu "num=1:mode=exclusive_process"
-
-### -- ask for number of cores (default: 1) --
+#BSUB -W 00:15
+#BSUB -R "rusage[mem=10GB]"
+#BSUB -gpu "num=1"
 #BSUB -n 4
-
-### -- specify that the cores must be on the same host -- 
 #BSUB -R "span[hosts=1]"
+#BSUB -o bash/bash_outputs/sd_lora_%J.out
+#BSUB -e bash/bash_outputs/sd_lora_%J.err
 
-### -- Specify the output and error file. %J is the job-id -- 
-### -- -o and -e mean append, -oo and -eo mean overwrite -- 
-#BSUB -o bash/bash_outputs/train_test_%J.out
-#BSUB -e bash/bash_outputs/train_test_%J.err
-
-### -- Need to activate the python environment --
+# initialize conda in the script
+source activate base
 conda activate brain
 
-### -- run in the job --
-python src/train.py
+# The following shows how to use the accelerate denpending on the hardware  https://github.com/huggingface/accelerate/tree/main/examples
+python src/train_text_to_image_lora.py \
+    --pretrained_model_name_or_path="stable-diffusion-v1-5/stable-diffusion-v1-5" \
+    --dataset_name 'lambdalabs/naruto-blip-captions' \
+    --output_dir "models/sd-naruto-model-lora" \
+    # --num_train_epochs 1 \
+    # --variant 'fp16' \
+    # --resolution 512 \
+    # --train_batch_size 16 \
+    # --learning_rate 1e-4 \
+    # --lr_scheduler 'constant' \
+    # --lr_warmup_steps 500 \
+    # --dataloader_num_workers 4 \
+    # --adam_beta1 0.9 \
+    # --adam_beta2 0.999 \
+    # --adam_weight_decay 1e-2 \
+    # --adam_epsilon 1e-08 \
+    # --max_grad_norm 1 \
+    # --prediction_type 'epsilon' \ 
+    # # --report_to wandb \

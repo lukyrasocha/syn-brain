@@ -1,0 +1,29 @@
+04/10/2025 19:32:05 - INFO - __main__ - Distributed environment: DistributedType.NO
+Num processes: 1
+Process index: 0
+Local process index: 0
+Device: cuda
+
+Mixed precision type: no
+
+{'clip_sample_range', 'variance_type', 'rescale_betas_zero_snr', 'timestep_spacing', 'sample_max_value', 'prediction_type', 'thresholding', 'dynamic_thresholding_ratio'} was not found in config. Values will be initialized to default values.
+{'force_upcast', 'use_quant_conv', 'mid_block_add_attention', 'latents_std', 'latents_mean', 'shift_factor', 'use_post_quant_conv', 'scaling_factor'} was not found in config. Values will be initialized to default values.
+All model checkpoint weights were used when initializing AutoencoderKL.
+
+All the weights of AutoencoderKL were initialized from the model checkpoint at stable-diffusion-v1-5/stable-diffusion-v1-5.
+If your task is similar to the task the model of the checkpoint was trained on, you can already use AutoencoderKL for predictions without further training.
+{'mid_block_only_cross_attention', 'transformer_layers_per_block', 'num_class_embeds', 'class_embed_type', 'resnet_time_scale_shift', 'encoder_hid_dim_type', 'addition_time_embed_dim', 'dropout', 'addition_embed_type', 'mid_block_type', 'reverse_transformer_layers_per_block', 'projection_class_embeddings_input_dim', 'timestep_post_act', 'time_embedding_type', 'resnet_skip_time_act', 'cross_attention_norm', 'upcast_attention', 'only_cross_attention', 'time_cond_proj_dim', 'conv_in_kernel', 'num_attention_heads', 'time_embedding_dim', 'attention_type', 'resnet_out_scale_factor', 'time_embedding_act_fn', 'class_embeddings_concat', 'encoder_hid_dim', 'addition_embed_type_num_heads', 'dual_cross_attention', 'use_linear_projection', 'conv_out_kernel'} was not found in config. Values will be initialized to default values.
+All model checkpoint weights were used when initializing UNet2DConditionModel.
+
+All the weights of UNet2DConditionModel were initialized from the model checkpoint at stable-diffusion-v1-5/stable-diffusion-v1-5.
+If your task is similar to the task the model of the checkpoint was trained on, you can already use UNet2DConditionModel for predictions without further training.
+Repo card metadata block was not found. Setting CardData to empty.
+04/10/2025 19:32:09 - WARNING - huggingface_hub.repocard - Repo card metadata block was not found. Setting CardData to empty.
+04/10/2025 19:32:12 - INFO - __main__ - ***** Running training *****
+04/10/2025 19:32:12 - INFO - __main__ -   Num examples = 1221
+04/10/2025 19:32:12 - INFO - __main__ -   Num Epochs = 100
+04/10/2025 19:32:12 - INFO - __main__ -   Instantaneous batch size per device = 16
+04/10/2025 19:32:12 - INFO - __main__ -   Total train batch size (w. parallel, distributed & accumulation) = 16
+04/10/2025 19:32:12 - INFO - __main__ -   Gradient Accumulation steps = 1
+04/10/2025 19:32:12 - INFO - __main__ -   Total optimization steps = 7700
+Steps:   0%|          | 0/7700 [00:00<?, ?it/s]
