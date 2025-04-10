@@ -19,7 +19,7 @@ python src/train_text_to_image_lora.py \
     --pretrained_model_name_or_path="stable-diffusion-v1-5/stable-diffusion-v1-5" \
     --dataset_name 'lambdalabs/naruto-blip-captions' \
     --output_dir "models/sd-naruto-model-lora" \
-    # --num_train_epochs 1 \
+    --num_train_epochs 1 \
     # --variant 'fp16' \
     # --resolution 512 \
     # --train_batch_size 16 \
