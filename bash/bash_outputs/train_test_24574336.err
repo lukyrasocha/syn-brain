@@ -1,41 +1,0 @@
-
-CondaError: Run 'conda init' before 'conda activate'
-
-Loading pipeline components...:   0%|          | 0/7 [00:00<?, ?it/s]Loading pipeline components...:  29%|██▊       | 2/7 [00:00<00:00, 15.51it/s]Loading pipeline components...:  57%|█████▋    | 4/7 [00:00<00:00,  4.86it/s]Loading pipeline components...:  71%|███████▏  | 5/7 [00:01<00:00,  4.34it/s]Loading pipeline components...: 100%|██████████| 7/7 [00:01<00:00,  6.62it/s]Loading pipeline components...: 100%|██████████| 7/7 [00:01<00:00,  6.13it/s]
-Traceback (most recent call last):
-  File "/dtu/blackhole/1b/209339/text-to-image-generation-in-the-medical-domain/src/train.py", line 124, in <module>
-    train(model, train_dataloader, noise_scheduler, 1, resolution=1024)
-  File "/dtu/blackhole/1b/209339/text-to-image-generation-in-the-medical-domain/src/train.py", line 108, in train
-    model_pred = model.unet(
-                 ^^^^^^^^^^^
-  File "/dtu/blackhole/1b/209339/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/dtu/blackhole/1b/209339/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
-    return forward_call(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/dtu/blackhole/1b/209339/miniconda3/lib/python3.12/site-packages/diffusers/models/unets/unet_2d_condition.py", line 1152, in forward
-    aug_emb = self.get_aug_embed(
-              ^^^^^^^^^^^^^^^^^^^
-  File "/dtu/blackhole/1b/209339/miniconda3/lib/python3.12/site-packages/diffusers/models/unets/unet_2d_condition.py", line 984, in get_aug_embed
-    aug_emb = self.add_embedding(add_embeds)
-              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/dtu/blackhole/1b/209339/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/dtu/blackhole/1b/209339/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
-    return forward_call(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/dtu/blackhole/1b/209339/miniconda3/lib/python3.12/site-packages/diffusers/models/embeddings.py", line 1304, in forward
-    sample = self.linear_1(sample)
-             ^^^^^^^^^^^^^^^^^^^^^
-  File "/dtu/blackhole/1b/209339/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/dtu/blackhole/1b/209339/miniconda3/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
-    return forward_call(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/dtu/blackhole/1b/209339/miniconda3/lib/python3.12/site-packages/torch/nn/modules/linear.py", line 125, in forward
-    return F.linear(input, self.weight, self.bias)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-RuntimeError: mat1 and mat2 shapes cannot be multiplied (10x1792 and 2816x1280)
