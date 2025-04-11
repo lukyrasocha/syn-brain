@@ -47,11 +47,19 @@ conda activate brain
 #set +a
 
 # ADD HUGGING FACE TOKEN 
+<<<<<<< HEAD
 HUGGING_FACE_HUB_TOKEN=""
 
 #WANDB TOKEN 
 WANDB_API_KEY=""
 WANDB_PROJECT=""
+=======
+#HUGGING_FACE_HUB_TOKEN="x"
+
+#WANDB TOKEN 
+#WANDB_API_KEY="x"
+#WANDB_PROJECT="AML_"
+>>>>>>> 19f61ae (added scripts)
 
 
 ### -- Set temporary cache directory in scratch space --
