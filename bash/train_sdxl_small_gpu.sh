@@ -42,26 +42,6 @@ source /dtu/blackhole/17/209207/miniconda3/etc/profile.d/conda.sh
 ### -- Need to activate the python environment --
 conda activate brain
 
-## -- Load the environment variables from the .env file --
-#set -a
-#source /dtu/blackhole/17/209207/text-to-image-generation-in-the-medical-domain/.env
-#set +a
-
-# ADD HUGGING FACE TOKEN 
-<<<<<<< HEAD
-HUGGING_FACE_HUB_TOKEN=""
-
-#WANDB TOKEN 
-WANDB_API_KEY=""
-WANDB_PROJECT=""
-=======
-#HUGGING_FACE_HUB_TOKEN="x"
-
-#WANDB TOKEN 
-#WANDB_API_KEY="x"
-#WANDB_PROJECT="AML_"
->>>>>>> 19f61ae (added scripts)
-
 
 ### -- Set temporary cache directory in scratch space --
 CACHE_DIR="/dtu/blackhole/17/209207/$LSB_JOBID/cache"

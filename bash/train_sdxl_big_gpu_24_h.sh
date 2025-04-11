@@ -7,10 +7,10 @@
 #BSUB -q gpua100
 
 ### -- set walltime limit: hh:mm --
-#BSUB -W 0:20                  
+#BSUB -W 24:00                 
 
 # request GB of system-memory per core
-#BSUB -R "rusage[mem=16GB]"    
+#BSUB -R "rusage[mem=32GB]"    
 
 ### -- Select the resources: 1 gpu in exclusive process mode --
 #BSUB -gpu "num=1:mode=exclusive_process"
@@ -71,16 +71,17 @@ python /dtu/blackhole/17/209207/text-to-image-generation-in-the-medical-domain/d
   --train_batch_size=4 \
   --gradient_accumulation_steps=2 \
   --gradient_checkpointing \
-  --rank=16 \
-  --max_train_steps=5 \
+  --rank=32 \
+  --num_train_epochs=150  \
   --learning_rate=1e-4 \
   --max_grad_norm=1 \
   --lr_scheduler="cosine" --lr_warmup_steps=0 \
-  --output_dir="/dtu/blackhole/17/209207/sdxl-pokemon-minimal-test-output" \
+  --output_dir="/dtu/blackhole/17/209207/sdxl-naruto-lora-24h-output_big" \
   --mixed_precision="no" \
   --report_to="wandb" \
-  --validation_prompt="A photo of Pikachu pokemon" \
-  --checkpointing_steps=10 \
+  --validation_prompt="A ninja portrait of Naruto Uzumaki, facing camera, detailed illustration, anime style" \
+  --validation_epochs=5 \
+  --checkpointing_steps=500  \
   --use_8bit_adam \
   --seed=42 \
   --enable_xformers_memory_efficient_attention \
