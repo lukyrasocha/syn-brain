@@ -82,7 +82,7 @@ def describe_image(
 
     return response
 
-def process_all_images(
+def describe_all_images(
     prompt_text: str,
     model_path: str = "microsoft/llava-med-v1.5-mistral-7b",
     device: str = "cuda",
@@ -92,8 +92,8 @@ def process_all_images(
     load_4bit: bool = False,
 ):
     """
-    Process all images 
-    and save the generated descriptions, along with image paths, tumor flags, and class info,
+    Process all images in the directories
+    and save the generated descriptions along with image paths, tumor flags, and class info,
     in a JSON structured file.
     """
     directories = ["data/raw/Train_All_Images", "data/raw/Test_All_Images"]
@@ -113,7 +113,7 @@ def process_all_images(
             continue
 
         for root, _, files in os.walk(dir_path):
-            c = 0
+            #c = 0
             for file in files:
                 if not file.lower().endswith(('.jpg', '.jpeg', '.png')):
                     continue
@@ -122,36 +122,7 @@ def process_all_images(
                 try:
                     base_name = os.path.basename(file)
                     class_name = base_name.split("_")[0]
-                    #tumor_flag = False if class_name.lower() == "notumor" else True
-
-                    image = load_image(full_path)
-                    image_tensor = process_images([image], image_processor, model.config)
-                    if isinstance(image_tensor, list):
-                        image_tensor = [img.to(model.device, dtype=torch.float16) for img in image_tensor]
-                    else:
-                        image_tensor = image_tensor.to(model.device, dtype=torch.float16)
-                    if "notumor" in class_name.lower():
-                        prompt_text = \
-                        """
-                        Look at the MRI scan and give a short, structured report.
-                        The patient does not have a tumor or lesion — confirm this by checking carefully.
-
-                        Describe the view (axial, sagittal or coronal) and any other findings
-                        """
-                    else:
-                        prompt_text = \
-                        """
-                        The patient does have a tumor
-                        Look at the MRI scan and give a short, structured report:
-
-                        - Tumor: yes or no
-                        - Location: (e.g. left frontal lobe, central area, etc.)
-                        - Size: small, medium, or large
-                        - View: axial, sagittal, or coronal
-                        - Intensity: hypointense, isointense, or hyperintense
-                        - Other findings: describe anything else you notice
-                        If you cannot tell, write 'unknown'.
-                        """
+                    
                     conv = base_conv.copy()
                     if model.config.mm_use_im_start_end:
                         final_prompt = DEFAULT_IM_START_TOKEN + DEFAULT_IMAGE_TOKEN + DEFAULT_IM_END_TOKEN + "\n" + prompt_text
@@ -161,6 +132,13 @@ def process_all_images(
                     conv.append_message(roles[0], final_prompt)
                     conv.append_message(roles[1], None)
                     full_prompt = conv.get_prompt()
+
+                    image = load_image(full_path)
+                    image_tensor = process_images([image], image_processor, model.config)
+                    if isinstance(image_tensor, list):
+                        image_tensor = [img.to(model.device, dtype=torch.float16) for img in image_tensor]
+                    else:
+                        image_tensor = image_tensor.to(model.device, dtype=torch.float16)
 
                     input_ids = tokenizer_image_token(full_prompt, tokenizer, IMAGE_TOKEN_INDEX, return_tensors="pt").unsqueeze(0).to(model.device)
                     with torch.inference_mode():
@@ -173,6 +151,7 @@ def process_all_images(
                             use_cache=True,
                         )
                     full_text = tokenizer.decode(output_ids[0], skip_special_tokens=True)
+                    
                     if conv.sep_style == SeparatorStyle.TWO:
                         stop_str = conv.sep2  
                     else:
@@ -181,7 +160,6 @@ def process_all_images(
                         caption = full_text.split(stop_str)[-1].strip()
                     else:
                         caption = full_text.split(roles[1])[-1].strip()
-
 
                     print("="*50)
                     print(class_name)
@@ -194,10 +172,10 @@ def process_all_images(
                         "class": class_name,
                         "path": full_path,
                     })
-                    c += 1
+                    #c += 1
 
-                    if c == 10:
-                        break
+                    #if c == 10:
+                    #    break
 
                     print(f"Processed {full_path}")
                 except Exception as e:
@@ -217,9 +195,12 @@ def main():
     For processing all images in the datasets:
       python describe_image.py --all --prompt "Describe the image as a radiologist"
     """
+
+    prompt = "Analyze brain MRI. Output format: tumor (yes/no); if yes—location (brain region), size (small/medium/large), shape, intensity. Also describe brain features, MRI orientation (axial/sagittal/coronal), and any other abnormalities."
+
     parser = argparse.ArgumentParser(description="Generate descriptions for images using LLaVA-Med")
     parser.add_argument("--image", type=str, help="Path or URL to the input image (ignored if --all is used)")
-    parser.add_argument("--prompt", type=str, default="Describe the image as a radiologist.", help="Instruction prompt")
+    parser.add_argument("--prompt", type=str, default=prompt, help="Instruction prompt")
     parser.add_argument("--model_path", type=str, default="microsoft/llava-med-v1.5-mistral-7b", help="Model identifier or local path")
     parser.add_argument("--device", type=str, default="cuda", help="Device to run the model on (e.g., 'cuda' or 'cpu')")
     parser.add_argument("--temperature", type=float, default=0.2, help="Sampling temperature")
@@ -229,15 +210,10 @@ def main():
     parser.add_argument("--all", action="store_true", help="Process all images in data/Train_All_Images and data/Test_All_Images")
     args = parser.parse_args()
 
-    prompt = \
-    """
-    Describe what you see in this MRI image. Is there a tumor or lesion? If yes, where is it located? 
-    Also describe the image orientation (axial, sagittal, or coronal) and any important visual features
-    """
 
     if args.all:
-        process_all_images(
-            prompt_text=prompt, #args.prompt,
+        describe_all_images(
+            prompt_text=args.prompt,
             model_path=args.model_path,
             device=args.device,
             temperature=args.temperature,
@@ -247,7 +223,7 @@ def main():
         )
     else:
         if not args.image:
-            print("provide an image path wth --image flag if --all is not specified.")
+            print("Provide an image path with --image flag if --all is not specified.")
             return
         description = describe_image(
             image_file=args.image,
