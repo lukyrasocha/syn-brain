@@ -30,6 +30,6 @@
 conda activate adlcv
 
 ### -- run in the job --
-python src/image_captioner.py \
+python src/image_captioner_gemma.py \
     --image_folder "data/raw/Train_All_Images" \
     --max_new_tokens 77
