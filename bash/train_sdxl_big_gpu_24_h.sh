@@ -38,13 +38,8 @@
 source /dtu/blackhole/17/209207/miniconda3/etc/profile.d/conda.sh
 
 
-### -- Need to activate the python environment --
 conda activate brain
 
-## -- Load the environment variables from the .env file --
-#set -a
-#source /dtu/blackhole/17/209207/text-to-image-generation-in-the-medical-domain/.env
-#set +a
 
 
 
@@ -52,7 +47,6 @@ conda activate brain
 CACHE_DIR="/dtu/blackhole/17/209207/$LSB_JOBID/cache"
 mkdir -p "$CACHE_DIR/huggingface"
 export HF_HOME="$CACHE_DIR/huggingface"
-echo "Hugging Face cache set to: $HF_HOME"
 
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
@@ -61,28 +55,34 @@ WANDB_CACHE_DIR="$CACHE_DIR/wandb"
 mkdir -p "$WANDB_CACHE_DIR"
 export WANDB_DIR="$WANDB_CACHE_DIR" # Tells wandb where to write files
 export WANDB_CONFIG_DIR="$WANDB_CACHE_DIR" # Tells wandb where to look for config
-echo "W&B cache/config directory set to: $WANDB_DIR"
 
-python /dtu/blackhole/17/209207/text-to-image-generation-in-the-medical-domain/diffusers/examples/text_to_image/train_text_to_image_lora_sdxl.py \
-  --pretrained_model_name_or_path="stabilityai/stable-diffusion-xl-base-1.0" \
-  --pretrained_vae_model_name_or_path="madebyollin/sdxl-vae-fp16-fix" \
-  --dataset_name="lambdalabs/naruto-blip-captions" \
-  --resolution=1024 --center_crop --random_flip \
-  --train_batch_size=4 \
-  --gradient_accumulation_steps=2 \
-  --gradient_checkpointing \
-  --rank=32 \
-  --num_train_epochs=150  \
-  --learning_rate=1e-4 \
-  --max_grad_norm=1 \
-  --lr_scheduler="cosine" --lr_warmup_steps=0 \
-  --output_dir="/dtu/blackhole/17/209207/sdxl-naruto-lora-24h-output_big" \
-  --mixed_precision="no" \
-  --report_to="wandb" \
-  --validation_prompt="A ninja portrait of Naruto Uzumaki, facing camera, detailed illustration, anime style" \
-  --validation_epochs=5 \
-  --checkpointing_steps=500  \
-  --use_8bit_adam \
-  --seed=42 \
-  --enable_xformers_memory_efficient_attention \
-  --dataloader_num_workers=4
+
+TARGET_STEPS=9000
+
+accelerate launch --num_processes=2 --mixed_precision="no" \
+/dtu/blackhole/17/209207/text-to-image-generation-in-the-medical-domain/diffusers/examples/text_to_image/train_text_to_image_lora_sdxl.py \
+--pretrained_model_name_or_path="stabilityai/stable-diffusion-xl-base-1.0" \
+--pretrained_vae_model_name_or_path="madebyollin/sdxl-vae-fp16-fix" \
+--dataset_name="lambdalabs/naruto-blip-captions" \
+--resolution=1024 \
+--center_crop \
+--random_flip \
+--train_batch_size=4 \
+--gradient_accumulation_steps=1 \
+--max_train_steps=$TARGET_STEPS \
+--learning_rate=1e-4 \
+--rank=32 \
+--gradient_checkpointing \
+--max_grad_norm=1 \
+--lr_scheduler="cosine" \
+--lr_warmup_steps=0 \
+--output_dir="/dtu/blackhole/17/209207/sdxl-naruto-lora-V100-output" \
+--mixed_precision="no" \
+--report_to="wandb" \
+--validation_prompt="A ninja portrait of Naruto Uzumaki, facing camera, detailed illustration, anime style" \
+--validation_epochs=10 \
+--checkpointing_steps=500 \
+--use_8bit_adam \
+--seed=42 \
+--enable_xformers_memory_efficient_attention \
+--dataloader_num_workers=4
