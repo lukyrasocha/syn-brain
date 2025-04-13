@@ -1,35 +1,25 @@
 #!/bin/bash
 
-### -- set the job Name -- 
-#BSUB -J image_captioner
-
-### -- specify queue --
-#BSUB -q gpuv100
-
-### -- set walltime limit: hh:mm -- 
-#BSUB -W 10
-
-# request GB of system-memory per core
-#BSUB -R "rusage[mem=10GB]"
-
-### -- Select the resources: 1 gpu in exclusive process mode --
+#BSUB -J image_captioner_gemma
+#BSUB -q gpua100
+#BSUB -W 24:00
+#BSUB -R "rusage[mem=8GB]"
 #BSUB -gpu "num=1:mode=exclusive_process"
-
-### -- ask for number of cores (default: 1) --
 #BSUB -n 4
-
-### -- specify that the cores must be on the same host -- 
 #BSUB -R "span[hosts=1]"
+#BSUB -o bash/bash_outputs/image_captioner_gemma%J.out
+#BSUB -e bash/bash_outputs/image_captioner_gemma%J.err
+#BSUB -u s243867@student.dtu.dk
+#BSUB -B
+#BSUB -N
 
-### -- Specify the output and error file. %J is the job-id -- 
-### -- -o and -e mean append, -oo and -eo mean overwrite -- 
-#BSUB -o bash/bash_outputs/image_captioner_%J.out
-#BSUB -e bash/bash_outputs/image_captioner_%J.err
-
-### -- Need to activate the python environment --
+source ~/.bashrc
 conda activate adlcv
 
-### -- run in the job --
 python src/image_captioner_gemma.py \
     --image_folder "data/raw/Train_All_Images" \
-    --max_new_tokens 77
+    --max_new_tokens 77 \
+    --hf_token "hf_token" \
+    --model_id "google/gemma-3-12b-it" \
+    --tumor \
+    --prompt "Analyze brain MRI. Output format: tumor (yes/no); if yes—location (brain region), size (small/medium/large), shape, intensity. Also describe brain features, MRI orientation (axial/sagittal/coronal), and any other abnormalities. Max 77 tokens."

@@ -1,9 +1,9 @@
 # ===== USER MODIFIABLE SETTINGS =====
 # Model to use (e.g., google/gemma-3-4b-it, google/gemma-3-12b-it, google/gemma-3-27b-it)
-MODEL_ID = "google/gemma-3-27b-it"
+MODEL_ID = "google/gemma-3-12b-it"
 
 # Prompt for image captioning - modify this to change what kind of captions you get
-CAPTION_PROMPT = "Describe this MRI scan as if you were explaining it to a visual artist who is recreating the scene. Focus on visible shapes, textures, contrasts, and spatial features. Use layman-friendly terms where possible. Include details like the tumor’s size, position, brightness, and how it alters the normal brain structure. Output the description in natural, vivid, visual language suitable as input to a general image generation AI model."
+CAPTION_PROMPT = "Analyze brain MRI. Output format: tumor (yes/no); if yes—location (brain region), size (small/medium/large), shape, intensity. Also describe brain features, MRI orientation (axial/sagittal/coronal), and any other abnormalities. Max 77 tokens."
 #CAPTION_PROMPT = "Describe this brain MRI for image generation: mention tumor size, shape, location, contrast, and any brain deformation, using vivid, simple, visual language. Max 77 tokens, so keep it short and precise."
 # =====================================
 
@@ -23,12 +23,14 @@ def parse_arguments():
                         help=f'Gemma 3 model ID (default: {MODEL_ID})')
     parser.add_argument('--prompt', type=str, default=CAPTION_PROMPT,
                         help='Prompt for image captioning')
-    parser.add_argument('--max_new_tokens', type=int, default=256, 
+    parser.add_argument('--max_new_tokens', type=int, default=77, 
                         help='Maximum number of tokens to generate')
     parser.add_argument('--hf_token', type=str, default=None,
                         help='Hugging Face API token (optional, required for gated models)')
     parser.add_argument('--quantize', action='store_true', 
                         help='Use 8-bit quantization to reduce memory usage')
+    parser.add_argument('--tumor', action='store_true',
+                        help='Use tumor-specific prompt for captioning')
     return parser.parse_args()
 
 
@@ -168,11 +170,16 @@ def main():
         image_name = os.path.basename(image_path)
         print(f"[{i}/{len(image_files)}] Processing {image_name}")
 
+        prompt = args.prompt
+        class_name = image_name.split("_")[0]
+
+        if args.tumor:
+            prompt = class_name + " - " + prompt
+
         caption = caption_image(
-            image_path, model, processor, args.prompt, args.max_new_tokens
+            image_path, model, processor, prompt, args.max_new_tokens
         )
         
-        class_name = image_name.split("_")[0]
 
         # Append result to the list
         results.append({
