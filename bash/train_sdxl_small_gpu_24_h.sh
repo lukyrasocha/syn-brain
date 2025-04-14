@@ -46,18 +46,18 @@ export WANDB_DIR="$WANDB_CACHE_DIR"
 export WANDB_CONFIG_DIR="$WANDB_CACHE_DIR"
 
 
-TARGET_STEPS=9000
+TARGET_STEPS=20000
 
-accelerate launch --num_processes=2 --mixed_precision="no" \
+accelerate launch --num_processes=1 --mixed_precision="no" \
 /dtu/blackhole/17/209207/text-to-image-generation-in-the-medical-domain/diffusers/examples/text_to_image/train_text_to_image_lora_sdxl.py \
 --pretrained_model_name_or_path="stabilityai/stable-diffusion-xl-base-1.0" \
 --pretrained_vae_model_name_or_path="madebyollin/sdxl-vae-fp16-fix" \
---dataset_name="lambdalabs/naruto-blip-captions" \
+--train_data_dir="/dtu/blackhole/17/209207/text-to-image-generation-in-the-medical-domain/data/raw/Train_All_Images" \
 --resolution=1024 \
 --center_crop \
 --random_flip \
---train_batch_size=4 \
---gradient_accumulation_steps=1 \
+--train_batch_size=1 \
+--gradient_accumulation_steps=4 \
 --max_train_steps=$TARGET_STEPS \
 --learning_rate=1e-4 \
 --rank=32 \
@@ -65,13 +65,15 @@ accelerate launch --num_processes=2 --mixed_precision="no" \
 --max_grad_norm=1 \
 --lr_scheduler="cosine" \
 --lr_warmup_steps=0 \
---output_dir="/dtu/blackhole/17/209207/sdxl-naruto-lora-V100-output" \
+--output_dir="/dtu/blackhole/17/209207/brain_big" \
 --mixed_precision="no" \
 --report_to="wandb" \
---validation_prompt="A ninja portrait of Naruto Uzumaki, facing camera, detailed illustration, anime style" \
+--validation_prompt="The brain MRI shows a tumor in the left frontal lobe. The tumor appears to be medium, with a size of 2.5 x 2.4 x 2.25 cm. It has a heterogeneous shape and intensity, which means that the tumor has an irregular or mixed appearance in terms of its shape and the signal intensity on the MRI file_name." \
 --validation_epochs=10 \
 --checkpointing_steps=500 \
 --use_8bit_adam \
 --seed=42 \
 --enable_xformers_memory_efficient_attention \
+--num_validation_images=10 \
 --dataloader_num_workers=4
+
