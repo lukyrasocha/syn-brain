@@ -72,7 +72,7 @@ python /dtu/blackhole/17/209207/text-to-image-generation-in-the-medical-domain/d
   --max_grad_norm=1 \
   --lr_scheduler="cosine" --lr_warmup_steps=0 \
   --output_dir="/dtu/blackhole/17/209207/sdxl-pokemon-minimal-test-output" \
-  --mixed_precision="no" \
+  --mixed_precision="bf16" \
   --report_to="wandb" \
   --validation_prompt="A photo of Pikachu pokemon" \
   --checkpointing_steps=10 \
