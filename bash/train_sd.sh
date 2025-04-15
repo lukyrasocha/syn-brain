@@ -25,25 +25,32 @@
 #BSUB -o bash/bash_outputs/sd_finetuning%J.out 
 #BSUB -e bash/bash_outputs/sd_finetuning%J.err 
 
-# Send email when job begins
-#BSUB -B
-
-# Send email when job ends
-#BSUB -N
 source ~/.bashrc
 conda activate brain
 
 
 
 
-# export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+# Get the directory of the current script (train_sd.sh)
+SCRIPT_DIR=$(dirname "$0")
 
-# # Set WANDB cache/config directory (Optional but good practice in scratch)
-# WANDB_CACHE_DIR="$CACHE_DIR/wandb"
-# mkdir -p "$WANDB_CACHE_DIR"
-# export WANDB_DIR="$WANDB_CACHE_DIR" # Tells wandb where to write files
-# export WANDB_CONFIG_DIR="$WANDB_CACHE_DIR" # Tells wandb where to look for config
+# Set the cache directory based on the script location
+CACHE_DIR="$SCRIPT_DIR/cache"
 
+# Create the cache directory if it doesn't exist
+mkdir -p "$CACHE_DIR/huggingface"
+export HF_HOME="$CACHE_DIR/huggingface"
+echo "Hugging Face cache set to: $HF_HOME"
+
+# Set PyTorch CUDA allocation config (optional)
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+
+# Set WANDB cache/config directory (optional)
+WANDB_CACHE_DIR="$CACHE_DIR/wandb"
+mkdir -p "$WANDB_CACHE_DIR"
+export WANDB_DIR="$WANDB_CACHE_DIR"  # Tells wandb where to write files
+export WANDB_CONFIG_DIR="$WANDB_CACHE_DIR"  # Tells wandb where to look for config
+echo "W&B cache/config directory set to: $WANDB_DIR"
 
 TARGET_STEPS=20000
 
@@ -51,7 +58,7 @@ TARGET_STEPS=20000
 accelerate launch --num_processes=1 --mixed_precision="bf16" src/train_lora_sd.py \
 --pretrained_model_name_or_path="stable-diffusion-v1-5/stable-diffusion-v1-5" \
 --train_data_dir="/data/raw/Train_All_Images" \
---output_dir="/models/sd" \
+--output_dir="models/sd" \
 --resolution=512 \
 --train_batch_size=2 \
 --gradient_accumulation_steps=8 \
@@ -68,7 +75,6 @@ accelerate launch --num_processes=1 --mixed_precision="bf16" src/train_lora_sd.p
 --snr_gamma=5.0 \
 --adam_weight_decay=0.01 \
 --lr_warmup_steps=1000 \
---train_text_encoder \
 --checkpointing_steps=1000 \
 --use_8bit_adam \
 --seed=42 \
