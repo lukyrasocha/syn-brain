@@ -1,27 +1,12 @@
 #!/bin/bash
 
-### -- set the job Name --
 #BSUB -J sd_finetuning     
-
-### -- specify queue --
 #BSUB -q gpua100
-
-### -- set walltime limit: hh:mm --
 #BSUB -W 00:10                 
-
-# request GB of system-memory per core
 #BSUB -R "rusage[mem=15GB]"    
-
-### -- Select the resources: 1 gpu in exclusive process mode --
 #BSUB -gpu "num=1:mode=exclusive_process"
-
-### -- ask for number of cores (default: 1) --
 #BSUB -n 4
-
-### -- specify that the cores must be on the same host --
 #BSUB -R "span[hosts=1]"
-
-### -- Specify the output and error file. %J is the job-id --
 #BSUB -o bash/bash_outputs/sd_finetuning%J.out 
 #BSUB -e bash/bash_outputs/sd_finetuning%J.err 
 
@@ -29,27 +14,18 @@ source ~/.bashrc
 conda activate brain
 
 
-
-
-# Get the directory of the current script (train_sd.sh)
-SCRIPT_DIR=$(dirname "$0")
-
-# Set the cache directory based on the script location
-CACHE_DIR="$SCRIPT_DIR/cache"
-
-# Create the cache directory if it doesn't exist
-mkdir -p "$CACHE_DIR/huggingface"
+SCRIPT_DIR=$(dirname "$0")                                  # Get the directory of the current script (train_sd.sh)
+CACHE_DIR="$SCRIPT_DIR/cache"                               # Set the cache directory based on the script location
+mkdir -p "$CACHE_DIR/huggingface"                           # Create the cache directory if it doesn't exist
 export HF_HOME="$CACHE_DIR/huggingface"
 echo "Hugging Face cache set to: $HF_HOME"
 
-# Set PyTorch CUDA allocation config (optional)
-export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True     # Set PyTorch CUDA allocation config (optional)
 
-# Set WANDB cache/config directory (optional)
-WANDB_CACHE_DIR="$CACHE_DIR/wandb"
+WANDB_CACHE_DIR="$CACHE_DIR/wandb"                          # Set WANDB cache/config directory (optional)
 mkdir -p "$WANDB_CACHE_DIR"
-export WANDB_DIR="$WANDB_CACHE_DIR"  # Tells wandb where to write files
-export WANDB_CONFIG_DIR="$WANDB_CACHE_DIR"  # Tells wandb where to look for config
+export WANDB_DIR="$WANDB_CACHE_DIR"                         # Tells wandb where to write files
+export WANDB_CONFIG_DIR="$WANDB_CACHE_DIR"                  # Tells wandb where to look for config
 echo "W&B cache/config directory set to: $WANDB_DIR"
 
 TARGET_STEPS=20000
