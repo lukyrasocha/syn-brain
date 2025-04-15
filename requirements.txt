@@ -45,5 +45,6 @@ timm==0.9.12
 tiktoken
 openai==1.12.0
 backoff
+gdown
 
 opencv-python==4.11.0.86
