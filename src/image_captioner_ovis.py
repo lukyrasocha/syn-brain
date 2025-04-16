@@ -7,6 +7,16 @@ from io import BytesIO
 from PIL import Image
 from transformers import AutoModelForCausalLM
 
+def generate_prompt(class_name):
+    if class_name == "notumor":
+        return (
+            "This brain MRI shows no tumor. Analyze this brain MRI. Output format in one line: tumor: yes/no; general_description: describe the brain MRI image in general. Max 77 tokens."
+        )
+    else:
+        return (
+            f"This image has {class_name}. Analyze this brain MRI. Output format in one line: tumor: yes/no; if yes—location: brain region; size: small/medium/large; shape; intensity; orientation: axial/saggital/coronal; general description: describe the brain MRI in general and also mention any other abnormalities. Max 77 tokens"
+        )
+
 def load_image(image_path: str) -> Image.Image:
     """Load an image from a local file or URL and convert it to RGB."""
     if image_path.startswith("http://") or image_path.startswith("https://"):
@@ -53,7 +63,7 @@ def caption_image(image_path: str, prompt: str, model, text_tokenizer, visual_to
     output = text_tokenizer.decode(output_ids, skip_special_tokens=True)
     return output
 
-def process_all_images(directory: str, prompt: str, model, text_tokenizer, visual_tokenizer, max_partition: int = 9):
+def process_all_images(directory: str, model, text_tokenizer, visual_tokenizer, max_partition: int = 9):
     """
     process all images in a directory and generate captions.
     """
@@ -75,6 +85,8 @@ def process_all_images(directory: str, prompt: str, model, text_tokenizer, visua
 
                     base_name = os.path.basename(file)
                     class_name = base_name.split("_")[0]
+
+                    prompt = generate_prompt(class_name)
 
                     caption = caption_image(full_path, prompt, model, text_tokenizer, visual_tokenizer, max_partition)
                     print("=" * 50)
@@ -118,7 +130,7 @@ def main():
     visual_tokenizer = model.get_visual_tokenizer()
     
     if args.all:
-        results = process_all_images(args.dir, args.prompt, model, text_tokenizer, visual_tokenizer, args.max_partition)
+        results = process_all_images(args.dir, model, text_tokenizer, visual_tokenizer, args.max_partition)
         output_file = "captions_ovis_large.json"
         with open(output_file, "w") as f:
             json.dump(results, f, indent=4)
