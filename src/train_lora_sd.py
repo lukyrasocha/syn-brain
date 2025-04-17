@@ -38,6 +38,7 @@ from huggingface_hub import create_repo, upload_folder
 from packaging import version
 from peft import LoraConfig
 from peft.utils import get_peft_model_state_dict
+from PIL import Image
 from torchvision import transforms
 from tqdm.auto import tqdm
 from transformers import CLIPTextModel, CLIPTokenizer
@@ -330,7 +331,7 @@ def parse_args():
     parser.add_argument(
         "--dataloader_num_workers",
         type=int,
-        default=0,
+        default=4,
         help=(
             "Number of subprocesses to use for data loading. 0 means that the data will be loaded in the main process."
         ),
@@ -417,6 +418,18 @@ def parse_args():
         type=int,
         default=4,
         help=("The dimension of the LoRA update matrices."),
+    )
+
+    parser.add_argument(
+    "--metadata_file",
+    type=str,
+    default=None,
+    help=(
+        "Path to a JSON metadata file (jsonl format). If provided, this file will be used for captions "
+        "instead of the default 'metadata.jsonl' in train_data_dir. "
+        "Requires --train_data_dir to be set to locate the images listed in the metadata file."
+        " The jsonl file should contain 'file_name' and a caption key (matching --caption_column)."
+    ),
     )
 
     args = parser.parse_args()
@@ -619,25 +632,114 @@ def main():
 
     # In distributed training, the load_dataset function guarantees that only one local process can concurrently
     # download the dataset.
-    if args.dataset_name is not None:
-        # Downloading and loading a dataset from the hub.
-        dataset = load_dataset(
-            args.dataset_name,
-            args.dataset_config_name,
-            cache_dir=args.cache_dir,
-            data_dir=args.train_data_dir,
+
+    # if args.dataset_name is not None:
+    #     # Downloading and loading a dataset from the hub.
+    #     dataset = load_dataset(
+    #         args.dataset_name,
+    #         args.dataset_config_name,
+    #         cache_dir=args.cache_dir,
+    #         data_dir=args.train_data_dir,
+    #     )
+    # else:
+    #     data_files = {}
+    #     if args.train_data_dir is not None:
+    #         data_files["train"] = os.path.join(args.train_data_dir, "**")
+    #     dataset = load_dataset(
+    #         "imagefolder",
+    #         data_files=data_files,
+    #         cache_dir=args.cache_dir,
+    #     )
+    #     # See more about loading custom images at
+    #     # https://huggingface.co/docs/datasets/v2.4.0/en/image_load#imagefolder
+
+
+    logger.info("***** Preparing Dataset *****")
+    if args.metadata_file:
+        # Load dataset using the specified metadata file and map images
+        logger.info(f"Loading metadata from specific file: {args.metadata_file}")
+        logger.info(f"Images will be loaded from base directory: {args.train_data_dir}")
+
+        # Load the JSONL metadata file
+        dataset = load_dataset("json", data_files={"train": args.metadata_file}, cache_dir=args.cache_dir)
+
+        # --- Function to load image based on file_name from metadata ---
+        # Adapt "file_name" if your JSONL uses a different key for the image filename
+        metadata_filename_key = "file_name"
+        if metadata_filename_key not in dataset["train"].column_names:
+             raise ValueError(
+                 f"Metadata file {args.metadata_file} must contain a '{metadata_filename_key}' column."
+             )
+        if args.caption_column not in dataset["train"].column_names:
+            raise ValueError(
+                f"Metadata file {args.metadata_file} must contain the caption column specified by --caption_column ('{args.caption_column}')."
+            )
+
+        image_dir = args.train_data_dir # Already checked that this is not None if metadata_file is set
+
+        def load_image_from_path(example):
+            try:
+                image_path = os.path.join(image_dir, example[metadata_filename_key])
+                image = Image.open(image_path).convert("RGB")
+                example[args.image_column] = image # Add image under the expected column name
+            except FileNotFoundError:
+                logger.warning(f"Image file not found: {image_path}. Skipping this example.")
+                example[args.image_column] = None # Mark for filtering
+            except Exception as e:
+                 logger.error(f"Error loading image {image_path}: {e}. Skipping this example.")
+                 example[args.image_column] = None # Mark for filtering
+            return example
+
+        # Use map to add the image column
+        # Run with multiple processes for speed, adjust num_proc as needed
+        logger.info(f"Mapping images using {args.dataloader_num_workers} workers...")
+        dataset = dataset.map(
+            load_image_from_path,
+            num_proc=args.dataloader_num_workers,
+            desc="Loading images"
         )
+
+        # Filter out examples where image loading failed
+        original_count = len(dataset["train"])
+        dataset["train"] = dataset["train"].filter(lambda x: x[args.image_column] is not None)
+        filtered_count = len(dataset["train"])
+        if original_count > filtered_count:
+            logger.warning(f"Removed {original_count - filtered_count} examples due to image loading errors.")
+        if filtered_count == 0:
+            raise ValueError("No images could be loaded successfully. Check paths and metadata file.")
+
+        # Cast the new column to the Image feature type
+        logger.info("Casting image column...")
+        dataset = dataset.cast_column(args.image_column, datasets.Image())
+        logger.info("Dataset prepared with specific metadata file.")
+
     else:
-        data_files = {}
-        if args.train_data_dir is not None:
-            data_files["train"] = os.path.join(args.train_data_dir, "**")
-        dataset = load_dataset(
-            "imagefolder",
-            data_files=data_files,
-            cache_dir=args.cache_dir,
-        )
+        # Original logic: Use imagefolder (requires metadata.jsonl in train_data_dir) or hub dataset
+        if args.dataset_name is not None:
+            logger.info(f"Loading dataset '{args.dataset_name}' from the Hub.")
+            dataset = load_dataset(
+                args.dataset_name, args.dataset_config_name, cache_dir=args.cache_dir, data_dir=args.train_data_dir
+            )
+        elif args.train_data_dir is not None:
+            logger.info(f"Loading dataset using 'imagefolder' from: {args.train_data_dir}")
+            logger.info(f"Expecting 'metadata.jsonl' in {args.train_data_dir} for captions.")
+            data_files = {"train": os.path.join(args.train_data_dir, "**")}
+            dataset = load_dataset(
+                "imagefolder",
+                data_files=data_files,
+                cache_dir=args.cache_dir,
+            )
+        else:
+             raise ValueError("Need either --dataset_name or --train_data_dir (or --metadata_file with --train_data_dir).")
+        logger.info("Dataset prepared using default loading method.")
+
         # See more about loading custom images at
         # https://huggingface.co/docs/datasets/v2.4.0/en/image_load#imagefolder
+
+
+    
+
+
 
     # Preprocessing the datasets.
     # We need to tokenize inputs and targets.
@@ -935,8 +1037,8 @@ def main():
 
                         logger.info(f"Saved state to {save_path}")
 
-            logs = {"step_loss": loss.detach().item(), "lr": lr_scheduler.get_last_lr()[0]}
-            progress_bar.set_postfix(**logs)
+            # logs = {"step_loss": loss.detach().item(), "lr": lr_scheduler.get_last_lr()[0]}
+            # progress_bar.set_postfix(**logs)
 
             if global_step >= args.max_train_steps:
                 break
