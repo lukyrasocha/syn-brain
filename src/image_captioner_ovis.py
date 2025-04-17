@@ -83,7 +83,7 @@ def process_all_images(directory: str, prompt: str, model, text_tokenizer, visua
                     print(caption)
                     print("=" * 50)
                     results.append({
-                        "image": base_name,
+                        "file_name": base_name,
                         "text": caption,
                         "class": class_name,
                         "path": full_path,
