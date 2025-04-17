@@ -908,13 +908,13 @@ def main():
     else:
         initial_global_step = 0
 
-    progress_bar = tqdm(
-        range(0, args.max_train_steps),
-        initial=initial_global_step,
-        desc="Steps",
-        # Only show the progress bar once on each machine.
-        disable=not accelerator.is_local_main_process,
-    )
+    # progress_bar = tqdm(
+    #     range(0, args.max_train_steps),
+    #     initial=initial_global_step,
+    #     desc="Steps",
+    #     # Only show the progress bar once on each machine.
+    #     disable=not accelerator.is_local_main_process,
+    # )
 
     for epoch in range(first_epoch, args.num_train_epochs):
         unet.train()
@@ -994,7 +994,7 @@ def main():
 
             # Checks if the accelerator has performed an optimization step behind the scenes
             if accelerator.sync_gradients:
-                progress_bar.update(1)
+                # progress_bar.update(1)
                 global_step += 1
                 accelerator.log({"train_loss": train_loss}, step=global_step)
                 train_loss = 0.0

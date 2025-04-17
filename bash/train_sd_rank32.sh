@@ -2,7 +2,7 @@
 
 #BSUB -J sd_finetuning     
 #BSUB -q gpuv100
-#BSUB -W 00:10                 
+#BSUB -W 24:00                
 #BSUB -R "rusage[mem=32GB]"    
 #BSUB -gpu "num=1:mode=exclusive_process"
 #BSUB -n 4
