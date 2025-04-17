@@ -6,6 +6,7 @@ import requests
 from io import BytesIO
 from PIL import Image
 from transformers import AutoModelForCausalLM
+from tqdm import tqdm  
 
 def generate_prompt(class_name):
     if class_name == "notumor":
@@ -71,38 +72,42 @@ def process_all_images(directory: str, model, text_tokenizer, visual_tokenizer, 
     directories = ["data/raw/Train_All_Images", "data/raw/Test_All_Images"]
 
     results = []
+    all_image_paths = []
 
     for dir_path in directories:
         if not os.path.exists(dir_path):
             print(f"Directory '{dir_path}' does not exist. Skipping.")
             continue
+
         for root, _, files in os.walk(dir_path):
             for file in files:
-                if not file.lower().endswith(('.jpg', '.jpeg', '.png')):
-                    continue
-                full_path = os.path.join(root, file)
-                try:
+                if file.lower().endswith(('.jpg', '.jpeg', '.png')):
+                    full_path = os.path.join(root, file)
+                    all_image_paths.append(full_path)
 
-                    base_name = os.path.basename(file)
-                    class_name = base_name.split("_")[0]
 
-                    prompt = generate_prompt(class_name)
+    for full_path in tqdm(all_image_paths, desc="Processing images", unit="image"):
+        try:
+            base_name = os.path.basename(file)
+            class_name = base_name.split("_")[0]
 
-                    caption = caption_image(full_path, prompt, model, text_tokenizer, visual_tokenizer, max_partition)
-                    print("=" * 50)
-                    print(f"Image: {full_path}")
-                    print("Caption:")
-                    print(caption)
-                    print("=" * 50)
-                    results.append({
-                        "image": base_name,
-                        "text": caption,
-                        "class": class_name,
-                        "path": full_path,
-                    })
-                except Exception as e:
-                    print(f"Error processing {full_path}: {e}")
-        return results
+            prompt = generate_prompt(class_name)
+
+            caption = caption_image(full_path, prompt, model, text_tokenizer, visual_tokenizer, max_partition)
+            print("=" * 50)
+            print(f"Image: {full_path}")
+            print("Caption:")
+            print(caption)
+            print("=" * 50)
+            results.append({
+                "image": base_name,
+                "text": caption,
+                "class": class_name,
+                "path": full_path,
+            })
+        except Exception as e:
+            print(f"Error processing {full_path}: {e}")
+    return results
 
 def main():
 
