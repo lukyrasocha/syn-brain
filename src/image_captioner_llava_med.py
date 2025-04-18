@@ -5,12 +5,23 @@ import torch
 from PIL import Image
 import requests
 from io import BytesIO
+from tqdm import tqdm  
 
 from llava.constants import IMAGE_TOKEN_INDEX, DEFAULT_IMAGE_TOKEN, DEFAULT_IM_START_TOKEN, DEFAULT_IM_END_TOKEN
 from llava.conversation import conv_templates, SeparatorStyle
 from llava.model.builder import load_pretrained_model
 from llava.utils import disable_torch_init
 from llava.mm_utils import process_images, tokenizer_image_token, KeywordsStoppingCriteria
+
+def generate_prompt(class_name):
+    if class_name == "notumor":
+        return (
+            "This brain MRI shows no tumor. Analyze this brain MRI. Output format in one line: tumor: yes/no; general_description: describe the brain MRI image in general. Max 77 tokens."
+        )
+    else:
+        return (
+            f"This image has {class_name}. Analyze this brain MRI. Output format in one line: tumor: yes/no; if yes—location: brain region; size: small/medium/large; shape; intensity; orientation: axial/saggital/coronal; general description: describe the brain MRI in general and also mention any other abnormalities. Max 77 tokens"
+        )
 
 def load_image(image_file: str) -> Image.Image:
     """Load an image from a local file or URL."""
@@ -83,7 +94,6 @@ def describe_image(
     return response
 
 def describe_all_images(
-    prompt_text: str,
     model_path: str = "microsoft/llava-med-v1.5-mistral-7b",
     device: str = "cuda",
     temperature: float = 0.2,
@@ -107,81 +117,84 @@ def describe_all_images(
     roles = base_conv.roles
 
     results = []
+    all_image_paths = []
     for dir_path in directories:
         if not os.path.exists(dir_path):
             print(f"Directory '{dir_path}' does not exist. Skipping.")
             continue
 
         for root, _, files in os.walk(dir_path):
-            #c = 0
             for file in files:
-                if not file.lower().endswith(('.jpg', '.jpeg', '.png')):
-                    continue
+                if file.lower().endswith(('.jpg', '.jpeg', '.png')):
+                    full_path = os.path.join(root, file)
+                    all_image_paths.append(full_path)
 
-                full_path = os.path.join(root, file)
-                try:
-                    base_name = os.path.basename(file)
-                    class_name = base_name.split("_")[0]
-                    
-                    conv = base_conv.copy()
-                    if model.config.mm_use_im_start_end:
-                        final_prompt = DEFAULT_IM_START_TOKEN + DEFAULT_IMAGE_TOKEN + DEFAULT_IM_END_TOKEN + "\n" + prompt_text
-                    else:
-                        final_prompt = DEFAULT_IMAGE_TOKEN + "\n" + prompt_text
 
-                    conv.append_message(roles[0], final_prompt)
-                    conv.append_message(roles[1], None)
-                    full_prompt = conv.get_prompt()
+    for full_path in tqdm(all_image_paths, desc="Processing images", unit="image"):
+        try:
+            base_name = os.path.basename(file)
+            class_name = base_name.split("_")[0]
+            prompt = generate_prompt(class_name)
+            
+            conv = base_conv.copy()
+            if model.config.mm_use_im_start_end:
+                final_prompt = DEFAULT_IM_START_TOKEN + DEFAULT_IMAGE_TOKEN + DEFAULT_IM_END_TOKEN + "\n" + prompt
+            else:
+                final_prompt = DEFAULT_IMAGE_TOKEN + "\n" + prompt
 
-                    image = load_image(full_path)
-                    image_tensor = process_images([image], image_processor, model.config)
-                    if isinstance(image_tensor, list):
-                        image_tensor = [img.to(model.device, dtype=torch.float16) for img in image_tensor]
-                    else:
-                        image_tensor = image_tensor.to(model.device, dtype=torch.float16)
+            conv.append_message(roles[0], final_prompt)
+            conv.append_message(roles[1], None)
+            full_prompt = conv.get_prompt()
 
-                    input_ids = tokenizer_image_token(full_prompt, tokenizer, IMAGE_TOKEN_INDEX, return_tensors="pt").unsqueeze(0).to(model.device)
-                    with torch.inference_mode():
-                        output_ids = model.generate(
-                            input_ids,
-                            images=image_tensor,
-                            do_sample=True if temperature > 0 else False,
-                            temperature=temperature,
-                            max_new_tokens=max_new_tokens,
-                            use_cache=True,
-                        )
-                    full_text = tokenizer.decode(output_ids[0], skip_special_tokens=True)
-                    
-                    if conv.sep_style == SeparatorStyle.TWO:
-                        stop_str = conv.sep2  
-                    else:
-                        stop_str = conv.sep   
-                    if stop_str:
-                        caption = full_text.split(stop_str)[-1].strip()
-                    else:
-                        caption = full_text.split(roles[1])[-1].strip()
+            image = load_image(full_path)
+            image_tensor = process_images([image], image_processor, model.config)
+            if isinstance(image_tensor, list):
+                image_tensor = [img.to(model.device, dtype=torch.float16) for img in image_tensor]
+            else:
+                image_tensor = image_tensor.to(model.device, dtype=torch.float16)
 
-                    print("="*50)
-                    print(class_name)
-                    print(caption)
-                    print("="*50)
+            input_ids = tokenizer_image_token(full_prompt, tokenizer, IMAGE_TOKEN_INDEX, return_tensors="pt").unsqueeze(0).to(model.device)
+            with torch.inference_mode():
+                output_ids = model.generate(
+                    input_ids,
+                    images=image_tensor,
+                    do_sample=True if temperature > 0 else False,
+                    temperature=temperature,
+                    max_new_tokens=max_new_tokens,
+                    use_cache=True,
+                )
+            full_text = tokenizer.decode(output_ids[0], skip_special_tokens=True)
+            
+            if conv.sep_style == SeparatorStyle.TWO:
+                stop_str = conv.sep2  
+            else:
+                stop_str = conv.sep   
+            if stop_str:
+                caption = full_text.split(stop_str)[-1].strip()
+            else:
+                caption = full_text.split(roles[1])[-1].strip()
 
-                    results.append({
-                        "image": base_name,
-                        "text": caption,
-                        "class": class_name,
-                        "path": full_path,
-                    })
-                    #c += 1
+            print("="*50)
+            print(class_name)
+            print(caption)
+            print("="*50)
 
-                    #if c == 10:
-                    #    break
+            results.append({
+                "image": base_name,
+                "text": caption,
+                "class": class_name,
+                "path": full_path,
+            })
+            #c += 1
 
-                    print(f"Processed {full_path}")
-                except Exception as e:
-                    print(f"Error processing {full_path}: {e}")
+            #if c == 10:
+            #    break
 
-    output_file = "results.json"
+            print(f"Processed {full_path}")
+        except Exception as e:
+            print(f"Error processing {full_path}: {e}")
+
+    output_file = "captions_llava_med.json"
     with open(output_file, "w") as f:
         json.dump(results, f, indent=4)
     print(f"Generated descriptions saved in {output_file}")
@@ -213,7 +226,6 @@ def main():
 
     if args.all:
         describe_all_images(
-            prompt_text=args.prompt,
             model_path=args.model_path,
             device=args.device,
             temperature=args.temperature,
