@@ -35,8 +35,8 @@ pydantic<2,>=1
 markdown2[all]
 #protobuf
 protobuf==3.20.3
-numpy #==1.23.5
-scikit-learn==1.2.2
+numpy==1.24.4
+scikit-learn==1.3.2
 requests
 httpx==0.24.0
 einops==0.6.1
@@ -48,3 +48,4 @@ backoff
 gdown
 
 opencv-python==4.11.0.86
+flash_attn>=2.6.3

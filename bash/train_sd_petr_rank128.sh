@@ -35,13 +35,13 @@ accelerate launch --num_processes=1 --mixed_precision="bf16" src/train_lora_sd.p
 --pretrained_model_name_or_path="stable-diffusion-v1-5/stable-diffusion-v1-5" \
 --train_data_dir="data/raw/Train_All_Images" \
 --metadata_file="data/preprocessed_json_files/metadata_llava_med.jsonl" \
---output_dir="models/sd_rank64" \
+--output_dir="models/sd_rank128" \
 --resolution=512 \
 --train_batch_size=2 \
 --gradient_accumulation_steps=8 \
 --max_train_steps=$TARGET_STEPS \
 --learning_rate=0.0001 \
---rank=64 \
+--rank=128 \
 --gradient_checkpointing \
 --max_grad_norm=1.0 \
 --lr_scheduler="cosine" \
