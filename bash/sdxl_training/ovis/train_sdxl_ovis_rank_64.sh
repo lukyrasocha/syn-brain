@@ -2,20 +2,17 @@
 ### ————————————————————————————————————————————————————————————— ###
 ###                       Job Configuration                       ###
 ### ————————————————————————————————————————————————————————————— ###
-#BSUB -J train_sdxl_gemini_rank_248.sh                                     # job name
-#BSUB -q gpuv100                                                  # queue
+#BSUB -J train_sdxl_ovis_rank_64                                     # job name
+#BSUB -q gpua100                                                  # queue
 #BSUB -W 24:00                                                    # walltime (hh:mm)
 #BSUB -n 4                                                        # CPU cores
 #BSUB -R "rusage[mem=32GB] span[hosts=1]"                         # memory and host
 #BSUB -gpu "num=1:mode=exclusive_process"                         # memory and host
-#BSUB -o bash/bash_outputs/train_sdxl_gemini_rank_248.%J.out         # stdout
-#BSUB -e bash/bash_outputs/train_sdxl_gemini_rank_248.%J.err         # stdout
+#BSUB -o bash/bash_outputs/train_sdxl_ovis_rank_64.%J.out       # stdout
+#BSUB -e bash/bash_outputs/train_sdxl_ovis_rank_64.%J.err       # stdout
 #BSUB -B                                                          # email at start
 #BSUB -N                                                          # email at end
 #BSUB -u s240466@student.dtu.dk                                   # your email
-### ————————————————————————————————————————————————————————————— ###
-
-
 ### ————————————————————————————————————————————————————————————— ###
 ###                   Environment / Cache Setup                      ###
 ### ————————————————————————————————————————————————————————————— ###
@@ -34,7 +31,6 @@ WANDB_CACHE_DIR="$CACHE_DIR/wandb"
 mkdir -p "$WANDB_CACHE_DIR"
 export WANDB_DIR="$WANDB_CACHE_DIR"
 export WANDB_CONFIG_DIR="$WANDB_CACHE_DIR"
-### ————————————————————————————————————————————————————————————— ###
 
 ### ————————————————————————————————————————————————————————————— ###
 ###                    Training Parameters                        ###
@@ -49,19 +45,18 @@ METADATA_FILE="data/preprocessed_json_files/metadata_ovis_large.jsonl"
 OUTPUT_DIR="/dtu/blackhole/17/209207/ovis/model_$LSB_JOBID"
 
 # training
-RESOLUTION=512
-BATCH_SIZE=4
-ACCUM_STEPS=16
-MAX_STEPS=20000
+RESOLUTION=1024
+BATCH_SIZE=2
+ACCUM_STEPS=8
+MAX_STEPS=20000  
 LR=0.0001
 RANK=64
 SEED=42
-VALID_EPOCHS=1
+VALID_EPOCHS=10
 NUM_VAL_IMAGES=10
 WORKERS=4
 
-VALID_PROMPT="High‑resolution sagittal T1‑weighted MRI scan of a human brain demonstrating a large (approximately 5 cm diameter), hyperintense, irregularly shaped glioma tumor centered in the left frontal lobe, displacing the lateral ventricle, rendered with sharp anatomical detail and no other abnormalities."
-### ————————————————————————————————————————————————————————————— ###
+VALID_PROMPT="Tumor: yes; location: left hemisphere; size: large; shape: irregular; intensity: hyperintense; orientation: axial; general description: brain MRI shows a hyperintense glioma in the left hemisphere, with surrounding edema and midline shift. No other abnormalities are visible." \
 
 ### ————————————————————————————————————————————————————————————— ###
 ###                     Launch with Accelerate                    ###
@@ -74,6 +69,8 @@ accelerate launch \
     --pretrained_vae_model_name_or_path="$PRETRAINED_VAE" \
     --train_data_dir="$TRAIN_DATA_DIR" \
     --metadata_file="$METADATA_FILE" \
+    --center_crop \
+    --image_column="image" \
     --output_dir="$OUTPUT_DIR" \
     --resolution=$RESOLUTION \
     --train_batch_size=$BATCH_SIZE \
@@ -86,6 +83,7 @@ accelerate launch \
     --lr_scheduler="cosine" \
     --lr_warmup_steps=1000 \
     --snr_gamma=5.0 \
+    --gradient_checkpointing \
     --adam_weight_decay=0.01 \
     --train_text_encoder \
     --use_8bit_adam \
@@ -95,4 +93,4 @@ accelerate launch \
     --validation_epochs=$VALID_EPOCHS \
     --num_validation_images=$NUM_VAL_IMAGES \
     --dataloader_num_workers=$WORKERS \
-    --report_to="wandb"
+    --report_to="wandb" \

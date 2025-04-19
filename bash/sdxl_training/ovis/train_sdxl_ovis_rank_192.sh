@@ -2,14 +2,14 @@
 ### ————————————————————————————————————————————————————————————— ###
 ###                       Job Configuration                       ###
 ### ————————————————————————————————————————————————————————————— ###
-#BSUB -J train_sdxl_ovis_rank_248                                     # job name
+#BSUB -J train_sdxl_ovis_rank_192                                     # job name
 #BSUB -q gpua100                                                  # queue
 #BSUB -W 24:00                                                    # walltime (hh:mm)
 #BSUB -n 4                                                        # CPU cores
 #BSUB -R "rusage[mem=32GB] span[hosts=1]"                         # memory and host
 #BSUB -gpu "num=1:mode=exclusive_process"                         # memory and host
-#BSUB -o bash/bash_outputs/train_sdxl_ovis_rank_248.%J.out       # stdout
-#BSUB -e bash/bash_outputs/train_sdxl_ovis_rank_248.%J.err       # stdout
+#BSUB -o bash/bash_outputs/train_sdxl_ovis_rank_192.%J.out       # stdout
+#BSUB -e bash/bash_outputs/train_sdxl_ovis_rank_192.%J.err       # stdout
 #BSUB -B                                                          # email at start
 #BSUB -N                                                          # email at end
 #BSUB -u s240466@student.dtu.dk                                   # your email
@@ -50,14 +50,13 @@ BATCH_SIZE=2
 ACCUM_STEPS=8
 MAX_STEPS=20000  
 LR=0.0001
-RANK=248
+RANK=192
 SEED=42
 VALID_EPOCHS=10
 NUM_VAL_IMAGES=10
 WORKERS=4
 
 VALID_PROMPT="Tumor: yes; location: left hemisphere; size: large; shape: irregular; intensity: hyperintense; orientation: axial; general description: brain MRI shows a hyperintense glioma in the left hemisphere, with surrounding edema and midline shift. No other abnormalities are visible." \
-
 ### ————————————————————————————————————————————————————————————— ###
 ###                     Launch with Accelerate                    ###
 ### ————————————————————————————————————————————————————————————— ###
