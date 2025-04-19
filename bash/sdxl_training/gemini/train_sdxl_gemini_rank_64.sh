@@ -3,7 +3,7 @@
 ###                       Job Configuration                       ###
 ### ————————————————————————————————————————————————————————————— ###
 #BSUB -J train_sdxl_gemini_rank_64                                     # job name
-#BSUB -q gpuv100                                                  # queue
+#BSUB -q gpua100                                                  # queue
 #BSUB -W 24:00                                                    # walltime (hh:mm)
 #BSUB -n 4                                                        # CPU cores
 #BSUB -R "rusage[mem=32GB] span[hosts=1]"                         # memory and host
@@ -45,18 +45,18 @@ METADATA_FILE="data/preprocessed_json_files/metadata_gemini.jsonl"
 OUTPUT_DIR="/dtu/blackhole/17/209207/gemini/model_$LSB_JOBID"
 
 # training
-RESOLUTION=512
-BATCH_SIZE=4
-ACCUM_STEPS=16
-MAX_STEPS=200000
+RESOLUTION=1024
+BATCH_SIZE=2
+ACCUM_STEPS=8
+MAX_STEPS=20000  
 LR=0.0001
 RANK=64
 SEED=42
-VALID_EPOCHS=1
+VALID_EPOCHS=10
 NUM_VAL_IMAGES=10
 WORKERS=4
 
-VALID_PROMPT="High‑resolution sagittal T1‑weighted MRI scan of a human brain demonstrating a large (approximately 5 cm diameter), hyperintense, irregularly shaped glioma tumor centered in the left frontal lobe, displacing the lateral ventricle, rendered with sharp anatomical detail and no other abnormalities."
+VALID_PROMPT="A detailed axial T1-weighted brain MRI showing clear evidence of a tumor in the frontal lobe with surrounding edema and mass effect." \
 ### ————————————————————————————————————————————————————————————— ###
 ###                     Launch with Accelerate                    ###
 ### ————————————————————————————————————————————————————————————— ###
@@ -68,6 +68,7 @@ accelerate launch \
     --pretrained_vae_model_name_or_path="$PRETRAINED_VAE" \
     --train_data_dir="$TRAIN_DATA_DIR" \
     --metadata_file="$METADATA_FILE" \
+    --center_crop \
     --image_column="image" \
     --output_dir="$OUTPUT_DIR" \
     --resolution=$RESOLUTION \
@@ -81,13 +82,14 @@ accelerate launch \
     --lr_scheduler="cosine" \
     --lr_warmup_steps=1000 \
     --snr_gamma=5.0 \
+    --gradient_checkpointing \
     --adam_weight_decay=0.01 \
     --train_text_encoder \
     --use_8bit_adam \
-    --checkpointing_steps=1000 \
+    --checkpointing_steps=500 \
     --seed=$SEED \
     --validation_prompt="$VALID_PROMPT" \
     --validation_epochs=$VALID_EPOCHS \
     --num_validation_images=$NUM_VAL_IMAGES \
     --dataloader_num_workers=$WORKERS \
-    --report_to="wandb"
+    --report_to="wandb" \

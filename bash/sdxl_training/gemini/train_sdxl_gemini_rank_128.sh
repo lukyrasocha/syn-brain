@@ -2,14 +2,14 @@
 ### ————————————————————————————————————————————————————————————— ###
 ###                       Job Configuration                       ###
 ### ————————————————————————————————————————————————————————————— ###
-#BSUB -J train_sdxl_ovis_rank_248                                     # job name
+#BSUB -J train_sdxl_gemini_rank_128                                     # job name
 #BSUB -q gpua100                                                  # queue
 #BSUB -W 24:00                                                    # walltime (hh:mm)
 #BSUB -n 4                                                        # CPU cores
 #BSUB -R "rusage[mem=32GB] span[hosts=1]"                         # memory and host
 #BSUB -gpu "num=1:mode=exclusive_process"                         # memory and host
-#BSUB -o bash/bash_outputs/train_sdxl_ovis_rank_248.%J.out       # stdout
-#BSUB -e bash/bash_outputs/train_sdxl_ovis_rank_248.%J.err       # stdout
+#BSUB -o bash/bash_outputs/train_sdxl_gemini_rank_128.%J.out       # stdout
+#BSUB -e bash/bash_outputs/train_sdxl_gemini_rank_128.%J.err       # stdout
 #BSUB -B                                                          # email at start
 #BSUB -N                                                          # email at end
 #BSUB -u s240466@student.dtu.dk                                   # your email
@@ -41,8 +41,8 @@ PRETRAINED_VAE="madebyollin/sdxl-vae-fp16-fix"
 
 # data
 TRAIN_DATA_DIR="data/raw/Train_All_Images"
-METADATA_FILE="data/preprocessed_json_files/metadata_ovis_large.jsonl"
-OUTPUT_DIR="/dtu/blackhole/17/209207/ovis/model_$LSB_JOBID"
+METADATA_FILE="data/preprocessed_json_files/metadata_gemini.jsonl"
+OUTPUT_DIR="/dtu/blackhole/17/209207/gemini/model_$LSB_JOBID"
 
 # training
 RESOLUTION=1024
@@ -50,14 +50,13 @@ BATCH_SIZE=2
 ACCUM_STEPS=8
 MAX_STEPS=20000  
 LR=0.0001
-RANK=248
+RANK=128
 SEED=42
 VALID_EPOCHS=10
 NUM_VAL_IMAGES=10
 WORKERS=4
 
-VALID_PROMPT="Tumor: yes; location: left hemisphere; size: large; shape: irregular; intensity: hyperintense; orientation: axial; general description: brain MRI shows a hyperintense glioma in the left hemisphere, with surrounding edema and midline shift. No other abnormalities are visible." \
-
+VALID_PROMPT="A detailed axial T1-weighted brain MRI showing clear evidence of a tumor in the frontal lobe with surrounding edema and mass effect." \
 ### ————————————————————————————————————————————————————————————— ###
 ###                     Launch with Accelerate                    ###
 ### ————————————————————————————————————————————————————————————— ###
