@@ -35,15 +35,6 @@ export WANDB_CONFIG_DIR="$WANDB_CACHE_DIR"
 ### ————————————————————————————————————————————————————————————— ###
 ###                    Training Parameters                        ###
 ### ————————————————————————————————————————————————————————————— ###
-# model
-PRETRAINED_MODEL="stabilityai/stable-diffusion-xl-base-1.0"
-PRETRAINED_VAE="madebyollin/sdxl-vae-fp16-fix"
-
-# data
-TRAIN_DATA_DIR="data/raw/Train_All_Images"
-METADATA_FILE="data/preprocessed_json_files/metadata_ovis_large.jsonl"
-OUTPUT_DIR="/dtu/blackhole/17/209207/ovis/model_$LSB_JOBID"
-
 # training
 RESOLUTION=1024
 BATCH_SIZE=2
@@ -52,9 +43,19 @@ MAX_STEPS=20000
 LR=0.0001
 RANK=128
 SEED=42
-VALID_EPOCHS=10
+VALID_EPOCHS=1
 NUM_VAL_IMAGES=10
 WORKERS=4
+
+# model
+PRETRAINED_MODEL="stabilityai/stable-diffusion-xl-base-1.0"
+PRETRAINED_VAE="madebyollin/sdxl-vae-fp16-fix"
+
+# data
+TRAIN_DATA_DIR="data/raw/Train_All_Images"
+METADATA_FILE="data/preprocessed_json_files/metadata_ovis_large.jsonl"
+OUTPUT_DIR="/dtu/blackhole/17/209207/ovis/model_${LSB_JOBID}_${RANK}_gpuv100"
+
 
 VALID_PROMPT="Tumor: yes; location: left hemisphere; size: large; shape: irregular; intensity: hyperintense; orientation: axial; general description: brain MRI shows a hyperintense glioma in the left hemisphere, with surrounding edema and midline shift. No other abnormalities are visible." \
 
@@ -81,7 +82,7 @@ accelerate launch \
     --gradient_checkpointing \
     --max_grad_norm=1.0 \
     --lr_scheduler="cosine" \
-    --lr_warmup_steps=1000 \
+    --lr_warmup_steps=500 \
     --snr_gamma=5.0 \
     --gradient_checkpointing \
     --adam_weight_decay=0.01 \

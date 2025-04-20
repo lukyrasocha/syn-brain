@@ -2,14 +2,14 @@
 ### ————————————————————————————————————————————————————————————— ###
 ###                       Job Configuration                       ###
 ### ————————————————————————————————————————————————————————————— ###
-#BSUB -J train_sdxl_ovis_rank_248                                     # job name
+#BSUB -J train_sdxl_ovis_rank_128                                     # job name
 #BSUB -q gpua100                                                  # queue
 #BSUB -W 24:00                                                    # walltime (hh:mm)
 #BSUB -n 4                                                        # CPU cores
 #BSUB -R "rusage[mem=32GB] span[hosts=1]"                         # memory and host
 #BSUB -gpu "num=1:mode=exclusive_process"                         # memory and host
-#BSUB -o bash/bash_outputs/train_sdxl_ovis_rank_248.%J.out       # stdout
-#BSUB -e bash/bash_outputs/train_sdxl_ovis_rank_248.%J.err       # stdout
+#BSUB -o bash/bash_outputs/train_sdxl_ovis_rank_128.%J.out       # stdout
+#BSUB -e bash/bash_outputs/train_sdxl_ovis_rank_128.%J.err       # stdout
 #BSUB -B                                                          # email at start
 #BSUB -N                                                          # email at end
 #BSUB -u s240466@student.dtu.dk                                   # your email
@@ -35,6 +35,18 @@ export WANDB_CONFIG_DIR="$WANDB_CACHE_DIR"
 ### ————————————————————————————————————————————————————————————— ###
 ###                    Training Parameters                        ###
 ### ————————————————————————————————————————————————————————————— ###
+# training
+RESOLUTION=1024
+BATCH_SIZE=2
+ACCUM_STEPS=8
+MAX_STEPS=20000  
+LR=0.0001
+RANK=128
+SEED=42
+VALID_EPOCHS=1
+NUM_VAL_IMAGES=10
+WORKERS=4
+
 # model
 PRETRAINED_MODEL="stabilityai/stable-diffusion-xl-base-1.0"
 PRETRAINED_VAE="madebyollin/sdxl-vae-fp16-fix"
@@ -42,21 +54,10 @@ PRETRAINED_VAE="madebyollin/sdxl-vae-fp16-fix"
 # data
 TRAIN_DATA_DIR="data/raw/Train_All_Images"
 METADATA_FILE="data/preprocessed_json_files/metadata_ovis_large.jsonl"
-OUTPUT_DIR="/dtu/blackhole/17/209207/ovis/model_$LSB_JOBID"
+OUTPUT_DIR="/dtu/blackhole/17/209207/ovis/model_${LSB_JOBID}_${RANK}_gpua100"
 
-# training
-RESOLUTION=1024
-BATCH_SIZE=2
-ACCUM_STEPS=8
-MAX_STEPS=20000  
-LR=0.0001
-RANK=248
-SEED=42
-VALID_EPOCHS=10
-NUM_VAL_IMAGES=10
-WORKERS=4
 
-VALID_PROMPT="Tumor: yes; location: left hemisphere; size: large; shape: irregular; intensity: hyperintense; orientation: axial; general description: brain MRI shows a hyperintense glioma in the left hemisphere, with surrounding edema and midline shift. No other abnormalities are visible." \
+VALID_PROMPT="Tumor: yes; location: left hemisphere; size: large; shape: regular; intensity: hyperintense; orientation: axial; general description: brain MRI shows a hyperintense glioma in the left hemisphere, with surrounding edema and midline shift. No other abnormalities are visible." \
 
 ### ————————————————————————————————————————————————————————————— ###
 ###                     Launch with Accelerate                    ###

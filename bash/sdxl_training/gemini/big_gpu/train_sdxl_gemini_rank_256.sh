@@ -2,14 +2,14 @@
 ### ————————————————————————————————————————————————————————————— ###
 ###                       Job Configuration                       ###
 ### ————————————————————————————————————————————————————————————— ###
-#BSUB -J train_sdxl_llava_rank_192                                     # job name
+#BSUB -J train_sdxl_gemini_rank_256                                     # job name
 #BSUB -q gpua100                                                  # queue
 #BSUB -W 24:00                                                    # walltime (hh:mm)
 #BSUB -n 4                                                        # CPU cores
 #BSUB -R "rusage[mem=32GB] span[hosts=1]"                         # memory and host
 #BSUB -gpu "num=1:mode=exclusive_process"                         # memory and host
-#BSUB -o bash/bash_outputs/train_sdxl_llava_rank_192.%J.out       # stdout
-#BSUB -e bash/bash_outputs/train_sdxl_llava_rank_192.%J.err       # stdout
+#BSUB -o bash/bash_outputs/train_sdxl_gemini_rank_256.%J.out       # stdout
+#BSUB -e bash/bash_outputs/train_sdxl_gemini_rank_256.%J.err       # stdout
 #BSUB -B                                                          # email at start
 #BSUB -N                                                          # email at end
 #BSUB -u s240466@student.dtu.dk                                   # your email
@@ -35,29 +35,30 @@ export WANDB_CONFIG_DIR="$WANDB_CACHE_DIR"
 ### ————————————————————————————————————————————————————————————— ###
 ###                    Training Parameters                        ###
 ### ————————————————————————————————————————————————————————————— ###
-# model
-PRETRAINED_MODEL="stabilityai/stable-diffusion-xl-base-1.0"
-PRETRAINED_VAE="madebyollin/sdxl-vae-fp16-fix"
-
-# data
-TRAIN_DATA_DIR="data/raw/Train_All_Images"
-METADATA_FILE="data/preprocessed_json_files/metadata_llava_med.jsonl"
-OUTPUT_DIR="/dtu/blackhole/17/209207/llava/model_$LSB_JOBID"
-
 # training
 RESOLUTION=1024
 BATCH_SIZE=2
 ACCUM_STEPS=8
 MAX_STEPS=20000  
 LR=0.0001
-RANK=192
+RANK=256
 SEED=42
-VALID_EPOCHS=10
+VALID_EPOCHS=1
 NUM_VAL_IMAGES=10
 WORKERS=4
 
+# model
+PRETRAINED_MODEL="stabilityai/stable-diffusion-xl-base-1.0"
+PRETRAINED_VAE="madebyollin/sdxl-vae-fp16-fix"
 
-VALID_PROMPT="Brain MRI shows a large, irregularly shaped, hyperintense glioma in the right temporal lobe, with surrounding edema and mass effect. No other abnormalities are evident." \
+# data
+TRAIN_DATA_DIR="data/raw/Train_All_Images"
+METADATA_FILE="data/preprocessed_json_files/metadata_gemini.jsonl"
+OUTPUT_DIR="/dtu/blackhole/17/209207/gemini/model_${LSB_JOBID}_${RANK}_gpua100"
+
+
+VALID_PROMPT="tumor: yes; location: pituitary; size: large; shape: regular; intensity: bright; orientation: sagittal; general description: Brain MRI in sagittal view showing large pituitary tumor. Abnormal enhancement is seen involving the pituitary region and surrounding structures." \
+
 ### ————————————————————————————————————————————————————————————— ###
 ###                     Launch with Accelerate                    ###
 ### ————————————————————————————————————————————————————————————— ###
