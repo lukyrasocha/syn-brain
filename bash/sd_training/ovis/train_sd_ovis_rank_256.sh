@@ -66,7 +66,7 @@ VALID_PROMPT="Tumor: yes; location: left hemisphere; size: large; shape: irregul
 ### ————————————————————————————————————————————————————————————— ###
 accelerate launch \
   --num_processes=1 \
-  --mixed_precision="fp16" \
+  --mixed_precision="bf16" \
   src/train_lora_sd.py \
     --pretrained_model_name_or_path="$PRETRAINED_MODEL" \
     --train_data_dir="$TRAIN_DATA_DIR" \
@@ -85,7 +85,6 @@ accelerate launch \
     --lr_scheduler="cosine" \
     --lr_warmup_steps=500 \
     --snr_gamma=5.0 \
-    --gradient_checkpointing \
     --adam_weight_decay=0.01 \
     --use_8bit_adam \
     --checkpointing_steps=500 \

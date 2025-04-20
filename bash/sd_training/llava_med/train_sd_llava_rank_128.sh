@@ -68,7 +68,7 @@ VALID_PROMPT="Brain MRI shows a large, irregularly shaped, hyperintense glioma i
 ### ————————————————————————————————————————————————————————————— ###
 accelerate launch \
   --num_processes=1 \
-  --mixed_precision="fp16" \
+  --mixed_precision="bf16" \
   src/train_lora_sd.py \
     --pretrained_model_name_or_path="$PRETRAINED_MODEL" \
     --train_data_dir="$TRAIN_DATA_DIR" \
