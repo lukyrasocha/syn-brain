@@ -523,16 +523,9 @@ def main():
     # vae.requires_grad_(False)
     # text_encoder.requires_grad_(False)
 
-    # After initializing the models
     print('Checking requires_grad status for model components:')
-
-    # Check VAE
     print(f"VAE requires_grad: {any(p.requires_grad for p in vae.parameters())}")
-
-    # Check Text Encoder
     print(f"Text Encoder requires_grad: {any(p.requires_grad for p in text_encoder.parameters())}")
-
-    # Check UNet
     print(f"UNet requires_grad: {any(p.requires_grad for p in unet.parameters())}")
 
     # Freeze parameters of models to save memory
@@ -540,16 +533,9 @@ def main():
     vae.requires_grad_(False)
     text_encoder.requires_grad_(False)
 
-    # Check again after freezing
     print('After freezing parameters:')
-
-    # Check VAE
     print(f"VAE requires_grad: {any(p.requires_grad for p in vae.parameters())}")
-
-    # Check Text Encoder
     print(f"Text Encoder requires_grad: {any(p.requires_grad for p in text_encoder.parameters())}")
-
-    # Check UNet
     print(f"UNet requires_grad: {any(p.requires_grad for p in unet.parameters())}")
 
     # For mixed precision training we cast all non-trainable weights (vae, non-lora text_encoder and non-lora unet) to half-precision
