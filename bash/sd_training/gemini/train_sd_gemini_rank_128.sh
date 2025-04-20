@@ -3,10 +3,10 @@
 ###                       Job Configuration                       ###
 ### ————————————————————————————————————————————————————————————— ###
 #BSUB -J train_sd_gemini_rank_128                                  # job name
-#BSUB -q gpuv100                                                  # queue
+#BSUB -q gpua100                                                 # queue
 #BSUB -W 24:00                                                    # walltime (hh:mm)
 #BSUB -n 4                                                        # CPU cores
-#BSUB -R "rusage[mem=32GB] span[hosts=1]"                         # memory and host
+#BSUB -R "rusage[mem=64GB] span[hosts=1]"                         # memory and host
 #BSUB -gpu "num=1:mode=exclusive_process"                         # memory and host
 #BSUB -o bash/bash_outputs/train_sd_gemini_rank_128.%J.out        # stdout
 #BSUB -e bash/bash_outputs/train_sd_gemini_rank_128.%J.err        # stdout
@@ -57,7 +57,7 @@ PRETRAINED_MODEL="stable-diffusion-v1-5/stable-diffusion-v1-5"
 # data
 TRAIN_DATA_DIR="data/raw/Train_All_Images"
 METADATA_FILE="data/preprocessed_json_files/metadata_gemini.jsonl"
-OUTPUT_DIR="models/gemini/model_${LSB_JOBID}_${RANK}_gpuv100"
+OUTPUT_DIR="models/gemini/model_${LSB_JOBID}_${RANK}_gpua100"
 
 VALID_PROMPT="tumor: yes; location: pituitary; size: large; shape: regular; intensity: bright; orientation: sagittal; general description: Brain MRI in sagittal view showing large pituitary tumor. Abnormal enhancement is seen involving the pituitary region and surrounding structures." \
 

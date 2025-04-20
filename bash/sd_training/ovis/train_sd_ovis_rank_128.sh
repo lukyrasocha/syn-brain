@@ -3,7 +3,7 @@
 ###                       Job Configuration                       ###
 ### ————————————————————————————————————————————————————————————— ###
 #BSUB -J train_sd_ovis_rank_128                                    # job name
-#BSUB -q gpuv100                                                  # queue
+#BSUB -q gpua100                                                  # queue
 #BSUB -W 24:00                                                    # walltime (hh:mm)
 #BSUB -n 4                                                        # CPU cores
 #BSUB -R "rusage[mem=64GB] span[hosts=1]"                         # memory and host
@@ -57,7 +57,7 @@ PRETRAINED_MODEL="stable-diffusion-v1-5/stable-diffusion-v1-5"
 # data
 TRAIN_DATA_DIR="data/raw/Train_All_Images"
 METADATA_FILE="data/preprocessed_json_files/metadata_gemini.jsonl"
-OUTPUT_DIR="models/gemini/model_${LSB_JOBID}_${RANK}_gpuv100"
+OUTPUT_DIR="models/gemini/model_${LSB_JOBID}_${RANK}_gpua100"
 
 VALID_PROMPT="Tumor: yes; location: left hemisphere; size: large; shape: irregular; intensity: hyperintense; orientation: axial; general description: brain MRI shows a hyperintense glioma in the left hemisphere, with surrounding edema and midline shift. No other abnormalities are visible." \
 
