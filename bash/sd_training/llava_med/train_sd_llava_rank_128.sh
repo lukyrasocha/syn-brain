@@ -6,7 +6,7 @@
 #BSUB -q gpuv100                                                  # queue
 #BSUB -W 24:00                                                    # walltime (hh:mm)
 #BSUB -n 4                                                        # CPU cores
-#BSUB -R "rusage[mem=32GB] span[hosts=1]"                         # memory and host
+#BSUB -R "rusage[mem=64GB] span[hosts=1]"                         # memory and host
 #BSUB -gpu "num=1:mode=exclusive_process"                         # memory and host
 #BSUB -o bash/bash_outputs/train_sd_llava_rank_128.%J.out         # stdout
 #BSUB -e bash/bash_outputs/train_sd_llava_rank_128.%J.err         # stdout
@@ -16,12 +16,13 @@
 ###                   Environment / Cache Setup                   ###
 ### ————————————————————————————————————————————————————————————— ###
 
+
 source ~/.bashrc
 conda activate brain
 
 # HF & W&B cache in scratch
 
-SCRIPT_DIR=$(dirname "$1")                                  # Get the directory of the current script (train_sd.sh)
+SCRIPT_DIR=$(dirname "$0")                                  # Get the directory of the current script (train_sd.sh)
 CACHE_DIR="$SCRIPT_DIR/cache"                               # Set the cache directory based on the script location
 mkdir -p "$CACHE_DIR/huggingface"                           # Create the cache directory if it doesn't exist
 export HF_HOME="$CACHE_DIR/huggingface"
@@ -39,13 +40,6 @@ echo "W&B cache/config directory set to: $WANDB_DIR"
 ### ————————————————————————————————————————————————————————————— ###
 ###                    Training Parameters                        ###
 ### ————————————————————————————————————————————————————————————— ###
-# model
-PRETRAINED_MODEL="stable-diffusion-v1-5/stable-diffusion-v1-5"
-
-# data
-TRAIN_DATA_DIR="data/raw/Train_All_Images"
-METADATA_FILE="data/preprocessed_json_files/metadata_llava_med.jsonl"
-
 # training
 RESOLUTION=1024
 BATCH_SIZE=2
@@ -54,18 +48,27 @@ MAX_STEPS=20000
 LR=0.0001
 RANK=128
 SEED=42
-VALID_EPOCHS=10
+VALID_EPOCHS=1
 NUM_VAL_IMAGES=10
 WORKERS=4
-OUTPUT_DIR="models/llava/llava_rank_$RANK'_'$LSB_JOBID"
 
-VALID_PROMPT="A detailed axial T1-weighted brain MRI showing clear evidence of a tumor in the frontal lobe with surrounding edema and mass effect." \
+
+# model
+PRETRAINED_MODEL="stable-diffusion-v1-5/stable-diffusion-v1-5"
+
+# data
+TRAIN_DATA_DIR="data/raw/Train_All_Images"
+METADATA_FILE="data/preprocessed_json_files/metadata_gemini.jsonl"
+OUTPUT_DIR="models/gemini/model_${LSB_JOBID}_${RANK}_gpuv100"
+
+
+VALID_PROMPT="Brain MRI shows a large, irregularly shaped, hyperintense glioma in the right temporal lobe, with surrounding edema and mass effect. No other abnormalities are evident." \
 ### ————————————————————————————————————————————————————————————— ###
 ###                     Launch with Accelerate                    ###
 ### ————————————————————————————————————————————————————————————— ###
 accelerate launch \
   --num_processes=1 \
-  --mixed_precision="bf16" \
+  --mixed_precision="fp16" \
   src/train_lora_sd.py \
     --pretrained_model_name_or_path="$PRETRAINED_MODEL" \
     --train_data_dir="$TRAIN_DATA_DIR" \
@@ -82,7 +85,7 @@ accelerate launch \
     --gradient_checkpointing \
     --max_grad_norm=1.0 \
     --lr_scheduler="cosine" \
-    --lr_warmup_steps=1000 \
+    --lr_warmup_steps=500 \
     --snr_gamma=5.0 \
     --gradient_checkpointing \
     --adam_weight_decay=0.01 \
