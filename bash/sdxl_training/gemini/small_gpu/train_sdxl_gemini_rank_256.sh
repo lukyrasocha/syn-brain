@@ -2,14 +2,14 @@
 ### ————————————————————————————————————————————————————————————— ###
 ###                       Job Configuration                       ###
 ### ————————————————————————————————————————————————————————————— ###
-#BSUB -J train_sdxl_gemini_rank_248                                     # job name
-#BSUB -q gpua100                                                  # queue
+#BSUB -J train_sdxl_gemini_rank_256                                     # job name
+#BSUB -q gpuv100                                                  # queue
 #BSUB -W 24:00                                                    # walltime (hh:mm)
 #BSUB -n 4                                                        # CPU cores
-#BSUB -R "rusage[mem=32GB] span[hosts=1]"                         # memory and host
+#BSUB -R "rusage[mem=64GB] span[hosts=1]"                         # memory and host
 #BSUB -gpu "num=1:mode=exclusive_process"                         # memory and host
-#BSUB -o bash/bash_outputs/train_sdxl_gemini_rank_248.%J.out       # stdout
-#BSUB -e bash/bash_outputs/train_sdxl_gemini_rank_248.%J.err       # stdout
+#BSUB -o bash/bash_outputs/train_sdxl_gemini_rank_256.%J.out       # stdout
+#BSUB -e bash/bash_outputs/train_sdxl_gemini_rank_256.%J.err       # stdout
 #BSUB -B                                                          # email at start
 #BSUB -N                                                          # email at end
 #BSUB -u s240466@student.dtu.dk                                   # your email
@@ -35,6 +35,18 @@ export WANDB_CONFIG_DIR="$WANDB_CACHE_DIR"
 ### ————————————————————————————————————————————————————————————— ###
 ###                    Training Parameters                        ###
 ### ————————————————————————————————————————————————————————————— ###
+# training
+RESOLUTION=1024
+BATCH_SIZE=2
+ACCUM_STEPS=8
+MAX_STEPS=20000  
+LR=0.0001
+RANK=256
+SEED=42
+VALID_EPOCHS=1
+NUM_VAL_IMAGES=10
+WORKERS=4
+
 # model
 PRETRAINED_MODEL="stabilityai/stable-diffusion-xl-base-1.0"
 PRETRAINED_VAE="madebyollin/sdxl-vae-fp16-fix"
@@ -42,27 +54,16 @@ PRETRAINED_VAE="madebyollin/sdxl-vae-fp16-fix"
 # data
 TRAIN_DATA_DIR="data/raw/Train_All_Images"
 METADATA_FILE="data/preprocessed_json_files/metadata_gemini.jsonl"
-OUTPUT_DIR="/dtu/blackhole/17/209207/gemini/model_$LSB_JOBID"
+OUTPUT_DIR="/dtu/blackhole/17/209207/model_${LSB_JOBID}_${RANK}_gpuv100"
 
-# training
-RESOLUTION=1024
-BATCH_SIZE=2
-ACCUM_STEPS=8
-MAX_STEPS=20000  
-LR=0.0001
-RANK=248
-SEED=42
-VALID_EPOCHS=10
-NUM_VAL_IMAGES=10
-WORKERS=4
 
-VALID_PROMPT="A detailed axial T1-weighted brain MRI showing clear evidence of a tumor in the frontal lobe with surrounding edema and mass effect." \
+VALID_PROMPT="tumor: yes; location: pituitary; size: large; shape: regular; intensity: bright; orientation: sagittal; general description: Brain MRI in sagittal view showing large pituitary tumor. Abnormal enhancement is seen involving the pituitary region and surrounding structures." \
 ### ————————————————————————————————————————————————————————————— ###
 ###                     Launch with Accelerate                    ###
 ### ————————————————————————————————————————————————————————————— ###
 accelerate launch \
   --num_processes=1 \
-  --mixed_precision="bf16" \
+  --mixed_precision="fp16" \
   src/train_lora_sdxl.py \
     --pretrained_model_name_or_path="$PRETRAINED_MODEL" \
     --pretrained_vae_model_name_or_path="$PRETRAINED_VAE" \
@@ -80,7 +81,7 @@ accelerate launch \
     --gradient_checkpointing \
     --max_grad_norm=1.0 \
     --lr_scheduler="cosine" \
-    --lr_warmup_steps=1000 \
+    --lr_warmup_steps=500 \
     --snr_gamma=5.0 \
     --gradient_checkpointing \
     --adam_weight_decay=0.01 \
