@@ -6,7 +6,7 @@
 #BSUB -q gpuv100                                                  # queue
 #BSUB -W 24:00                                                    # walltime (hh:mm)
 #BSUB -n 4                                                        # CPU cores
-#BSUB -R "rusage[mem=32GB] span[hosts=1]"                         # memory and host
+#BSUB -R "rusage[mem=64GB] span[hosts=1]"                         # memory and host
 #BSUB -gpu "num=1:mode=exclusive_process"                         # memory and host
 #BSUB -o bash/bash_outputs/train_sdxl_gemini_rank_128.%J.out       # stdout
 #BSUB -e bash/bash_outputs/train_sdxl_gemini_rank_128.%J.err       # stdout
@@ -66,7 +66,7 @@ VALID_PROMPT="tumor: yes; location: pituitary; size: large; shape: regular; inte
 ### ————————————————————————————————————————————————————————————— ###
 accelerate launch \
   --num_processes=1 \
-  --mixed_precision="bf16" \
+  --mixed_precision="fp16" \
   src/train_lora_sdxl.py \
     --pretrained_model_name_or_path="$PRETRAINED_MODEL" \
     --pretrained_vae_model_name_or_path="$PRETRAINED_VAE" \
