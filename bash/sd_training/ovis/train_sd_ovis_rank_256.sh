@@ -56,8 +56,8 @@ PRETRAINED_MODEL="stable-diffusion-v1-5/stable-diffusion-v1-5"
 
 # data
 TRAIN_DATA_DIR="data/raw/Train_All_Images"
-METADATA_FILE="data/preprocessed_json_files/metadata_gemini.jsonl"
-OUTPUT_DIR="models/gemini/model_${LSB_JOBID}_${RANK}_gpua100"
+METADATA_FILE="data/preprocessed_json_files/metadata_ovis_large.jsonl"
+OUTPUT_DIR="models/ovis/model_${LSB_JOBID}_${RANK}_gpua100"
 
 VALID_PROMPT="Tumor: yes; location: left hemisphere; size: large; shape: irregular; intensity: hyperintense; orientation: axial; general description: brain MRI shows a hyperintense glioma in the left hemisphere, with surrounding edema and midline shift. No other abnormalities are visible." \
 

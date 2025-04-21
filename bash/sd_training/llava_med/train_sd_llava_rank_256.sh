@@ -58,9 +58,8 @@ PRETRAINED_MODEL="stable-diffusion-v1-5/stable-diffusion-v1-5"
 
 # data
 TRAIN_DATA_DIR="data/raw/Train_All_Images"
-METADATA_FILE="data/preprocessed_json_files/metadata_gemini.jsonl"
-OUTPUT_DIR="models/gemini/model_${LSB_JOBID}_${RANK}_gpua100"
-
+METADATA_FILE="data/preprocessed_json_files/metadata_llava_med.jsonl"
+OUTPUT_DIR="models/llava/model_${LSB_JOBID}_${RANK}_gpua100"
 
 VALID_PROMPT="Brain MRI shows a large, irregularly shaped, hyperintense glioma in the right temporal lobe, with surrounding edema and mass effect. No other abnormalities are evident." \
 ### ————————————————————————————————————————————————————————————— ###

@@ -2,7 +2,7 @@
 ### ————————————————————————————————————————————————————————————— ###
 ###                       Job Configuration                       ###
 ### ————————————————————————————————————————————————————————————— ###
-#BSUB -J train_sd_ovis_rank_128                                    # job name
+#BSUB -J train_sd_ovis_rank_128                                   # job name
 #BSUB -q gpua100                                                  # queue
 #BSUB -W 24:00                                                    # walltime (hh:mm)
 #BSUB -n 4                                                        # CPU cores
@@ -13,7 +13,7 @@
 #BSUB -B                                                          # email at start
 #BSUB -N                                                          # email at end
 ### ————————————————————————————————————————————————————————————— ###
-###                   Environment / Cache Setup                      ###
+###                   Environment / Cache Setup                   ###
 ### ————————————————————————————————————————————————————————————— ###
 
 
@@ -56,8 +56,8 @@ PRETRAINED_MODEL="stable-diffusion-v1-5/stable-diffusion-v1-5"
 
 # data
 TRAIN_DATA_DIR="data/raw/Train_All_Images"
-METADATA_FILE="data/preprocessed_json_files/metadata_gemini.jsonl"
-OUTPUT_DIR="models/gemini/model_${LSB_JOBID}_${RANK}_gpua100"
+METADATA_FILE="data/preprocessed_json_files/metadata_ovis_large.jsonl"
+OUTPUT_DIR="models/ovis/model_${LSB_JOBID}_${RANK}_gpua100"
 
 VALID_PROMPT="Tumor: yes; location: left hemisphere; size: large; shape: irregular; intensity: hyperintense; orientation: axial; general description: brain MRI shows a hyperintense glioma in the left hemisphere, with surrounding edema and midline shift. No other abnormalities are visible." \
 
@@ -85,7 +85,6 @@ accelerate launch \
     --lr_scheduler="cosine" \
     --lr_warmup_steps=500 \
     --snr_gamma=5.0 \
-    --gradient_checkpointing \
     --adam_weight_decay=0.01 \
     --use_8bit_adam \
     --checkpointing_steps=500 \
