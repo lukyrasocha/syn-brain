@@ -1,201 +1,159 @@
-# ===== USER MODIFIABLE SETTINGS =====
-# Model to use (e.g., google/gemma-3-4b-it, google/gemma-3-12b-it, google/gemma-3-27b-it)
-MODEL_ID = "google/gemma-3-12b-it"
-
-# Prompt for image captioning - modify this to change what kind of captions you get
-CAPTION_PROMPT = "Analyze brain MRI. Output format: tumor (yes/no); if yes—location (brain region), size (small/medium/large), shape, intensity. Also describe brain features, MRI orientation (axial/sagittal/coronal), and any other abnormalities. Max 77 tokens."
-#CAPTION_PROMPT = "Describe this brain MRI for image generation: mention tumor size, shape, location, contrast, and any brain deformation, using vivid, simple, visual language. Max 77 tokens, so keep it short and precise."
-# =====================================
-
-import os
 import argparse
-import torch
-from PIL import Image
-from transformers import AutoProcessor, Gemma3ForConditionalGeneration, BitsAndBytesConfig
+import os
 import json
+import torch
+import gc
+from PIL import Image
+from tqdm import tqdm
+from transformers import AutoProcessor, Gemma3ForConditionalGeneration, BitsAndBytesConfig
 
-def parse_arguments():
-    """Parse command line arguments."""
-    parser = argparse.ArgumentParser(description='Gemma 3 Image Captioning')
-    parser.add_argument('--image_folder', type=str, required=True, 
-                        help='Path to folder containing images')
-    parser.add_argument('--model_id', type=str, default=MODEL_ID, 
-                        help=f'Gemma 3 model ID (default: {MODEL_ID})')
-    parser.add_argument('--prompt', type=str, default=CAPTION_PROMPT,
-                        help='Prompt for image captioning')
-    parser.add_argument('--max_new_tokens', type=int, default=77, 
-                        help='Maximum number of tokens to generate')
-    parser.add_argument('--hf_token', type=str, default=None,
-                        help='Hugging Face API token (optional, required for gated models)')
-    parser.add_argument('--quantize', action='store_true', 
-                        help='Use 8-bit quantization to reduce memory usage')
-    parser.add_argument('--tumor', action='store_true',
-                        help='Use tumor-specific prompt for captioning')
-    return parser.parse_args()
+def generate_prompt(class_name):
+    if class_name == "notumor":
+        return (
+            "This brain MRI shows no tumor. Analyze this brain MRI. Output format in one line: tumor: yes/no; general_description: describe the brain MRI image in general. Max 77 tokens."
+        )
+    else:
+        return (
+            f"This image has {class_name}. Analyze this brain MRI. Output format in one line: tumor: yes/no; if yes—location: brain region; size: small/medium/large; shape; intensity; orientation: axial/saggital/coronal; general description: describe the brain MRI in general and also mention any other abnormalities. Max 77 tokens"
+        )
 
+def load_image(image_file: str) -> Image.Image:
+    return Image.open(image_file).convert("RGB")
 
-def setup_model(model_id, hf_token, use_quantization):
-    """Set up the Gemma 3 model and processor."""
-    print(f"Loading model: {model_id}")
-    
-    # Configure token if provided
+def setup_model(model_id, hf_token=None, use_quantization=False):
     if hf_token:
         os.environ["HF_TOKEN"] = hf_token
         token_param = {"token": hf_token}
-        print("Using provided Hugging Face token")
     else:
         token_param = {}
-        print("No Hugging Face token provided (this will only work for non-gated models)")
-    
-    # Configure quantization if requested
-    if use_quantization:
-        print("Using 8-bit quantization")
-        quantization_config = BitsAndBytesConfig(load_in_8bit=True)
-    else:
-        quantization_config = None
-    
-    # Load the model
+
+    quantization_config = BitsAndBytesConfig(load_in_8bit=True) if use_quantization else None
     dtype = torch.bfloat16 if torch.cuda.is_available() else torch.float32
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    
-    try:
-        model = Gemma3ForConditionalGeneration.from_pretrained(
-            model_id,
-            torch_dtype=dtype,
-            device_map="auto" if torch.cuda.is_available() else None,
-            quantization_config=quantization_config,
-            **token_param,
-        ).eval()
-        
-        processor = AutoProcessor.from_pretrained(model_id, **token_param)
-        
-        print(f"Model loaded on {device}")
-        return model, processor
-    except Exception as e:
-        if not hf_token:
-            print("ERROR: Failed to load model. This may be a gated model that requires a token.")
-            print("Try running again with --hf_token parameter.")
-        raise e
 
+    model = Gemma3ForConditionalGeneration.from_pretrained(
+        model_id,
+        torch_dtype=dtype,
+        device_map="auto" if torch.cuda.is_available() else None,
+        quantization_config=quantization_config,
+        **token_param
+    ).eval()
 
-def caption_image(image_path, model, processor, prompt, max_new_tokens):
-    """Generate a caption for the given image."""
-    try:
-        # Load the image
-        image = Image.open(image_path).convert("RGB")
-        
-        # Create messages for the model with custom prompt
-        messages = [
-            {
-                "role": "user",
-                "content": [
-                    {"type": "text", "text": prompt},
-                    {"type": "image", "image": image}
-                ]
-            }
-        ]
-        
-        # Process inputs
-        inputs = processor.apply_chat_template(
-            messages,
-            add_generation_prompt=True,
-            tokenize=True,
-            return_dict=True,
-            return_tensors="pt"
-        )
-        
-        # Move inputs to device
-        inputs = {k: v.to(model.device) for k, v in inputs.items()}
-        
-        # Track input length to extract only new tokens
-        input_len = inputs["input_ids"].shape[-1]
-        
-        # Generate caption
-        with torch.inference_mode():
-            outputs = model.generate(
-                **inputs,
-                max_new_tokens=max_new_tokens,
-                do_sample=False
-            )
-        
-        # Extract only the newly generated tokens
-        generated_tokens = outputs[0][input_len:]
-        
-        # Decode the caption
-        caption = processor.decode(generated_tokens, skip_special_tokens=True)
-        
-        # Ensure caption is a single line
-        caption = caption.replace('\n', ' ').strip()
-        return caption
-    
-    except Exception as e:
-        import traceback
-        traceback_str = traceback.format_exc()
-        return f"Error processing {os.path.basename(image_path)}: {str(e)}\n{traceback_str}"
+    processor = AutoProcessor.from_pretrained(model_id, **token_param)
+    return model, processor
 
+def describe_image(image_file, prompt_text, model, processor, max_new_tokens):
+    image = load_image(image_file)
 
-def main():
-    """Main function to run the image captioning pipeline."""
-    args = parse_arguments()
-    
-    # Check if transformers version supports Gemma 3
-    try:
-        import transformers
-        version = transformers.__version__
-        print(f"Using transformers version: {version}")
-        if "4.50" not in version and "4.5" not in version:
-            print("Warning: Gemma 3 requires transformers version 4.50.0 or newer.")
-            print("You may need to install it with: pip install git+https://github.com/huggingface/transformers@v4.50.0-Gemma-3")
-    except ImportError:
-        print("Warning: Could not detect transformers version.")
-    
-    # Set up the model
-    model, processor = setup_model(
-        args.model_id, args.hf_token, args.quantize
-    )
-    
-    # Get a list of image files
-    supported_formats = ['.jpg', '.jpeg', '.png', '.bmp', '.webp']
-    image_files = [
-        os.path.join(args.image_folder, f) for f in os.listdir(args.image_folder)
-        if os.path.splitext(f.lower())[1] in supported_formats
+    messages = [
+        {
+            "role": "user",
+            "content": [
+                {"type": "text", "text": prompt_text},
+                {"type": "image", "image": image}
+            ]
+        }
     ]
-    
-    print(f"Found {len(image_files)} images to process")
-    print(f"Using prompt: '{args.prompt}'")
+
+    inputs = processor.apply_chat_template(
+        messages,
+        add_generation_prompt=True,
+        tokenize=True,
+        return_dict=True,
+        return_tensors="pt"
+    )
+
+    inputs = {k: v.to(model.device) for k, v in inputs.items()}
+    input_len = inputs["input_ids"].shape[-1]
+
+    with torch.inference_mode():
+        outputs = model.generate(
+            **inputs,
+            max_new_tokens=max_new_tokens,
+            do_sample=False
+        )
+
+    generated_tokens = outputs[0][input_len:]
+    caption = processor.decode(generated_tokens, skip_special_tokens=True)
+    return caption.replace('\n', ' ').strip()
+
+def describe_all_images(
+    model_id="google/gemma-3-12b-it",
+    hf_token=None,
+    use_quantization=False,
+    max_new_tokens=77
+):
+    directories = ["data/raw/Train_All_Images", "data/raw/Test_All_Images"]
+    supported_exts = (".jpg", ".jpeg", ".png", ".bmp", ".webp")
+
+    model, processor = setup_model(model_id, hf_token, use_quantization)
 
     results = []
+    for dir_path in directories:
+        if not os.path.exists(dir_path):
+            print(f"Directory '{dir_path}' does not exist. Skipping.")
+            continue
 
-    for i, image_path in enumerate(image_files, 1):
-        image_name = os.path.basename(image_path)
-        print(f"[{i}/{len(image_files)}] Processing {image_name}")
+        for root, _, files in os.walk(dir_path):
+            for file in files:
+                if file.lower().endswith(supported_exts):
+                    full_path = os.path.join(root, file)
+                    class_name = file.split("_")[0]
+                    prompt = generate_prompt(class_name)
 
-        prompt = args.prompt
-        class_name = image_name.split("_")[0]
+                    try:
+                        caption = describe_image(
+                            full_path, prompt, model, processor, max_new_tokens
+                        )
 
-        if args.tumor:
-            prompt = class_name + " - " + prompt
+                        print("="*50)
+                        print(class_name)
+                        print(caption)
+                        print("="*50)
 
-        caption = caption_image(
-            image_path, model, processor, prompt, args.max_new_tokens
+                        results.append({
+                            "image": file,
+                            "text": caption,
+                            "class": class_name,
+                            "path": full_path
+                        })
+
+                        torch.cuda.empty_cache()
+                        gc.collect()
+
+                    except Exception as e:
+                        print(f"Error processing {full_path}: {e}")
+
+    with open("captions_gemma.jsonl", "w") as f:
+        for item in results:
+            f.write(json.dumps(item) + "\n")
+
+    print("✅ Generated descriptions saved to captions_gemma.jsonl")
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--model_id", type=str, default="google/gemma-3-12b-it")
+    parser.add_argument("--hf_token", type=str, default=None)
+    parser.add_argument("--quantize", action="store_true")
+    parser.add_argument("--max_new_tokens", type=int, default=77)
+    parser.add_argument("--all", action="store_true")
+    parser.add_argument("--image", type=str, help="Path to a single image")
+    args = parser.parse_args()
+
+    if args.all:
+        describe_all_images(
+            model_id=args.model_id,
+            hf_token=args.hf_token,
+            use_quantization=args.quantize,
+            max_new_tokens=args.max_new_tokens
         )
-        
-
-        # Append result to the list
-        results.append({
-            "image": image_name,
-            "text": caption,
-            "class": class_name,
-            "path": image_path
-        })
-
-    # Save all results to a single JSON file
-    output_json_path = os.path.join(args.image_folder, "captions.json")
-    with open(output_json_path, 'w', encoding='utf-8') as f:
-        json.dump(results, f, indent=2)
-
-    print(f"All captions saved to {output_json_path}")
-
+    elif args.image:
+        model, processor = setup_model(args.model_id, args.hf_token, args.quantize)
+        class_name = os.path.basename(args.image).split("_")[0]
+        prompt = generate_prompt(class_name)
+        caption = describe_image(args.image, prompt, model, processor, args.max_new_tokens)
+        print("Generated Caption:\n", caption)
+    else:
+        print("Use --all to process all images or --image to run on one image")
 
 if __name__ == "__main__":
     main()
