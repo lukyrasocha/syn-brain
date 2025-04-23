@@ -2,14 +2,14 @@
 ###############################################################################
 #                         Job configuration (LSF)                             #
 ###############################################################################
-#BSUB -J train_llava_text_encoder_rank_248_text_encoder_true
+#BSUB -J train_gemini_text_encoder_rank_248_text_encoder_true
 #BSUB -q gpua100
 #BSUB -W 24:00
 #BSUB -n 4
 #BSUB -R "rusage[mem=32GB] span[hosts=1]"
 #BSUB -gpu "num=1:mode=exclusive_process"
-#BSUB -o bash/bash_outputs/train_llava_text_encoder_rank_248_text_encoder_true.%J.out
-#BSUB -e bash/bash_outputs/train_llava_text_encoder_rank_248_text_encoder_true.%J.err
+#BSUB -o bash/bash_outputs/train_gemini_text_encoder_rank_248_text_encoder_true.%J.out
+#BSUB -e bash/bash_outputs/train_gemini_text_encoder_rank_248_text_encoder_true.%J.err
 #BSUB -B
 #BSUB -N
 
@@ -82,7 +82,7 @@ export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 ###############################################################################
 PRETRAINED_MODEL="stabilityai/stable-diffusion-xl-base-1.0"
 PRETRAINED_VAE="madebyollin/sdxl-vae-fp16-fix"
-RANK=248
+RANK=128
 
 RESOLUTION=512
 BATCH_SIZE=2
@@ -92,10 +92,11 @@ LR=1e-4
 LR_WARMUP=1000
 CHECK_STEPS=500
 
-OUTPUT_DIR="$PROJECT_DIR/models/llava_${LSB_JOBID}_${RANK}_gpua100_$( [ $TRAIN_TEXT_ENCODER = true ] && echo text_encoder || echo unet_only )"
+OUTPUT_DIR="$PROJECT_DIR/models/gemini_${LSB_JOBID}_${RANK}_gpua100_$( [ $TRAIN_TEXT_ENCODER = true ] && echo text_encoder || echo unet_only )"
 mkdir -p "$OUTPUT_DIR"
 
-VALID_PROMPT="Brain MRI shows a large, irregularly shaped, hyperintense glioma in the right temporal lobe, with surrounding edema and mass effect. No other abnormalities are evident." \
+VALID_PROMPT="tumor: yes; location: pituitary; size: large; shape: regular; intensity: bright; orientation: sagittal; general description: Brain MRI in sagittal view showing large pituitary tumor. Abnormal enhancement is seen involving the pituitary region and surrounding structures."
+
 ###############################################################################
 #                               Launch                                        #
 ###############################################################################
@@ -104,7 +105,7 @@ accelerate launch --config_file "$ACCEL_CFG" src/train_lora_sdxl.py \
   --pretrained_model_name_or_path "$PRETRAINED_MODEL" \
   --pretrained_vae_model_name_or_path "$PRETRAINED_VAE" \
   --train_data_dir "$PROJECT_DIR/data/raw/Train_All_Images" \
-  --metadata_file "$PROJECT_DIR/data/preprocessed_json_files/metadata_llava_med.jsonl" \
+  --metadata_file "$PROJECT_DIR/data/preprocessed_json_files/metadata_gemini.jsonl" \
   --image_column image \
   --output_dir "$OUTPUT_DIR" \
   --resolution $RESOLUTION \
