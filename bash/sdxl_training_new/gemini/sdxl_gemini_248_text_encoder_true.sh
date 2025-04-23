@@ -82,7 +82,7 @@ export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 ###############################################################################
 PRETRAINED_MODEL="stabilityai/stable-diffusion-xl-base-1.0"
 PRETRAINED_VAE="madebyollin/sdxl-vae-fp16-fix"
-RANK=128
+RANK=248
 
 RESOLUTION=512
 BATCH_SIZE=2
@@ -95,7 +95,7 @@ CHECK_STEPS=500
 OUTPUT_DIR="$PROJECT_DIR/models/gemini_${LSB_JOBID}_${RANK}_gpua100_$( [ $TRAIN_TEXT_ENCODER = true ] && echo text_encoder || echo unet_only )"
 mkdir -p "$OUTPUT_DIR"
 
-VALID_PROMPT="tumor: yes; location: pituitary; size: large; shape: regular; intensity: bright; orientation: sagittal; general description: Brain MRI in sagittal view showing large pituitary tumor. Abnormal enhancement is seen involving the pituitary region and surrounding structures."
+VALID_PROMPT="tumor: yes; location: pituitary; size: large; shape: regular; intensity: bright; orientation: sagittal; general description: Brain MRI in sagittal view showing large pituitary tumor. Abnormal enhancement is seen involving the pituitary region and surrounding structures." \
 
 ###############################################################################
 #                               Launch                                        #
