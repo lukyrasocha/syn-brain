@@ -92,10 +92,10 @@ LR=1e-4
 LR_WARMUP=1000
 CHECK_STEPS=500
 
-OUTPUT_DIR="$PROJECT_DIR/models/gemini_${LSB_JOBID}_${RANK}_gpua100_$( [ $TRAIN_TEXT_ENCODER = true ] && echo text_encoder || echo unet_only )"
+OUTPUT_DIR="$PROJECT_DIR/models/ovis_${LSB_JOBID}_${RANK}_gpua100_$( [ $TRAIN_TEXT_ENCODER = true ] && echo text_encoder || echo unet_only )"
 mkdir -p "$OUTPUT_DIR"
 
-VALID_PROMPT="tumor: yes; location: pituitary; size: large; shape: regular; intensity: bright; orientation: sagittal; general description: Brain MRI in sagittal view showing large pituitary tumor. Abnormal enhancement is seen involving the pituitary region and surrounding structures."
+VALID_PROMPT="Tumor: yes; location: left hemisphere; size: large; shape: irregular; intensity: hyperintense; orientation: axial; general description: brain MRI shows a hyperintense glioma in the left hemisphere, with surrounding edema and midline shift. No other abnormalities are visible." \
 
 ###############################################################################
 #                               Launch                                        #
