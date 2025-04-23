@@ -1,6 +1,6 @@
 #!/bin/bash
 ###############################################################################
-#                         Job Configuration (LSF)                             #
+#                         Job configuration (LSF)                             #
 ###############################################################################
 #BSUB -J train_ovis_text_encoder_rank_248_text_encoder_true
 #BSUB -q gpua100
@@ -14,27 +14,23 @@
 #BSUB -N
 
 set -euo pipefail
-echo "==========  Job started on $(hostname) at $(date)  =========="
+echo "==========  Job started on $(hostname) at $(date) =========="
 
 ###############################################################################
-#                          Paths & user options                               
+#                         Paths & user options                                #
 ###############################################################################
 PROJECT_DIR="$PWD"
 BASE_DIR="${BASE_DIR:-$(dirname "$PWD")}"
-echo "PROJECT_DIR: $PROJECT_DIR"
-echo "BASE_DIR   : $BASE_DIR"
+CONDA_ENV="last_env"
+PY_VER=3.11
+REQ_FILE="$PROJECT_DIR/requirements_training_env.txt"
 
-CONDA_ENV_NAME="brain_training_last_3"
-PYTHON_VERSION=3.11
-REQUIREMENTS_FILE="$PROJECT_DIR/requirements_training_env.txt"
-
-ACCELERATE_CONFIG_DIR="${ACCELERATE_CONFIG_DIR:-$BASE_DIR/huggingface_cache/accelerate}"
-ACCELERATE_CONFIG_FILE="$ACCELERATE_CONFIG_DIR/default_config.yaml"
-
-TRAIN_TEXT_ENCODER="${TRAIN_TEXT_ENCODER:-true}"
+ACCEL_DIR="${ACCELERATE_CONFIG_DIR:-$BASE_DIR/huggingface_cache/accelerate}"
+ACCEL_CFG="$ACCEL_DIR/default_config.yaml"
+TRAIN_TEXT_ENCODER="${TRAIN_TEXT_ENCODER:-true}" 
 
 ###############################################################################
-#                             Conda environment                               
+#                       Conda: create & activate                              #
 ###############################################################################
 if [ -f "$BASE_DIR/miniconda3/etc/profile.d/conda.sh" ]; then
   source "$BASE_DIR/miniconda3/etc/profile.d/conda.sh"
@@ -45,67 +41,44 @@ else
   source "$(conda info --base)/etc/profile.d/conda.sh"
 fi
 
-conda env remove -n "$CONDA_ENV_NAME" -y || true
-conda create -n "$CONDA_ENV_NAME" python=$PYTHON_VERSION -y
-conda activate "$CONDA_ENV_NAME"
+conda env remove -n "$CONDA_ENV" -y || true
+conda create -n "$CONDA_ENV" python=$PY_VER -y
+conda activate "$CONDA_ENV"
 
 ###############################################################################
-#                    PyTorch 2.6 wheels (CUDA 12.4) via pip                   
+#                   Install full Python stack (GPU wheels)                    #
 ###############################################################################
-pip install --no-cache-dir \
-  torch==2.6.0 torchvision==0.21.0 torchaudio==2.6.0 \
+pip install --no-cache-dir -r "$REQ_FILE" \
   --extra-index-url https://download.pytorch.org/whl/cu124
 
 ###############################################################################
-#         Clean requirements: fix diffusers pin and yanked multidict          
+#                       Write Accelerate default_config                       #
 ###############################################################################
-TMP_REQ=$(mktemp)
-grep -vE '^diffusers==0\.33\.0\.dev0$' "$REQUIREMENTS_FILE" \
-  | sed 's/^multidict==6\.3\.2$/multidict==6.0.5/' > "$TMP_REQ"
-
-pip install --no-cache-dir -r "$TMP_REQ"
-rm "$TMP_REQ"
-
-pip install --no-cache-dir diffusers==0.33.1 multidict==6.0.5
-
-###############################################################################
-#                       Write Accelerate default_config                       
-###############################################################################
-mkdir -p "$ACCELERATE_CONFIG_DIR"
-cat > "$ACCELERATE_CONFIG_FILE" <<'YAML'
+mkdir -p "$ACCEL_DIR"
+cat > "$ACCEL_CFG" <<'YAML'
 compute_environment: LOCAL_MACHINE
-debug: false
 distributed_type: 'NO'
-downcast_bf16: 'no'
-enable_cpu_affinity: false
-ipex_config:
-  ipex: false
-machine_rank: 0
-main_training_function: main
 mixed_precision: 'no'
-num_machines: 1
 num_processes: 1
-rdzv_backend: static
+num_machines: 1
 same_network: true
-tpu_env: []
-tpu_use_cluster: false
-tpu_use_sudo: false
+machine_rank: 0
 use_cpu: false
 YAML
-echo ">>> Accelerate config written to $ACCELERATE_CONFIG_FILE"
+echo ">>> Accelerate config written to $ACCEL_CFG"
 
 ###############################################################################
-#                       Hugging Face / W&B cache paths                        
+#                        Hugging Face / W&B caches                            #
 ###############################################################################
 CACHE_DIR="$PROJECT_DIR/cache/${LSB_JOBID}"
-mkdir -p "$CACHE_DIR/huggingface" "$CACHE_DIR/wandb"
+mkdir -p "$CACHE_DIR"/{huggingface,wandb}
 export HF_HOME="$CACHE_DIR/huggingface"
 export WANDB_DIR="$CACHE_DIR/wandb"
 export WANDB_CONFIG_DIR="$CACHE_DIR/wandb"
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
 ###############################################################################
-#                          Training parameters                                 
+#                           Training parameters                               #
 ###############################################################################
 PRETRAINED_MODEL="stabilityai/stable-diffusion-xl-base-1.0"
 PRETRAINED_VAE="madebyollin/sdxl-vae-fp16-fix"
@@ -115,68 +88,53 @@ RESOLUTION=512
 BATCH_SIZE=2
 ACCUM_STEPS=8
 MAX_STEPS=20000
-LR=0.0001
-LR_WARMUP_STEPS=1000
-LR_SCHEDULER="cosine"
-MAX_GRAD_NORM=1.0
-ADAM_WEIGHT_DECAY=0.01
-SNR_GAMMA=5.0
+LR=1e-4
+LR_WARMUP=1000
+CHECK_STEPS=500
 
-SEED=42
-VALID_EPOCHS=1
-NUM_VAL_IMAGES=10
-CHECKPOINTING_STEPS=500
-WORKERS=4
-REPORT_TO="wandb"
-
-TRAIN_DATA_DIR="$PROJECT_DIR/data/raw/Train_All_Images"
-METADATA_FILE="$PROJECT_DIR/data/preprocessed_json_files/metadata_ovis_large.jsonl"
-OUTPUT_DIR="$PROJECT_DIR/models/gemini_${LSB_JOBID}_${RANK}_gpua100_$( [ "$TRAIN_TEXT_ENCODER" = "true" ] && echo text_encoder || echo unet_only )"
-VALID_PROMPT="tumor: yes; location: pituitary; size: large; shape: regular; intensity: bright; orientation: sagittal; general description: Brain MRI in sagittal view showing large pituitary tumor. Abnormal enhancement is seen involving the pituitary region and surrounding structures."
+OUTPUT_DIR="$PROJECT_DIR/models/ovis_${LSB_JOBID}_${RANK}_gpua100_$( [ $TRAIN_TEXT_ENCODER = true ] && echo text_encoder || echo unet_only )"
 mkdir -p "$OUTPUT_DIR"
 
+VALID_PROMPT="Tumor: yes; location: left hemisphere; size: large; shape: irregular; intensity: hyperintense; orientation: axial; general description: brain MRI shows a hyperintense glioma in the left hemisphere, with surrounding edema and midline shift. No other abnormalities are visible." \
+
 ###############################################################################
-#                                Training                                     
+#                               Launch                                        #
 ###############################################################################
-echo "Launching training…"
-ACCEL_CMD="accelerate launch --config_file $ACCELERATE_CONFIG_FILE \
-  src/train_lora_sdxl.py \
-  --pretrained_model_name_or_path=$PRETRAINED_MODEL \
-  --pretrained_vae_model_name_or_path=$PRETRAINED_VAE \
-  --train_data_dir=$TRAIN_DATA_DIR \
-  --metadata_file=$METADATA_FILE \
-  --image_column=image \
-  --output_dir=$OUTPUT_DIR \
-  --resolution=$RESOLUTION \
-  --train_batch_size=$BATCH_SIZE \
-  --gradient_accumulation_steps=$ACCUM_STEPS \
-  --max_train_steps=$MAX_STEPS \
-  --learning_rate=$LR \
-  --rank=$RANK \
+echo ">>> Launching training …"
+accelerate launch --config_file "$ACCEL_CFG" src/train_lora_sdxl.py \
+  --pretrained_model_name_or_path "$PRETRAINED_MODEL" \
+  --pretrained_vae_model_name_or_path "$PRETRAINED_VAE" \
+  --train_data_dir "$PROJECT_DIR/data/raw/Train_All_Images" \
+  --metadata_file "$PROJECT_DIR/data/preprocessed_json_files/metadata_ovis_large.jsonl" \
+  --image_column image \
+  --output_dir "$OUTPUT_DIR" \
+  --resolution $RESOLUTION \
+  --train_batch_size $BATCH_SIZE \
+  --gradient_accumulation_steps $ACCUM_STEPS \
+  --max_train_steps $MAX_STEPS \
+  --learning_rate $LR \
+  --rank $RANK \
   --gradient_checkpointing \
-  --max_grad_norm=$MAX_GRAD_NORM \
-  --lr_scheduler=$LR_SCHEDULER \
-  --lr_warmup_steps=$LR_WARMUP_STEPS \
-  --snr_gamma=$SNR_GAMMA \
-  --adam_weight_decay=$ADAM_WEIGHT_DECAY \
+  --lr_scheduler cosine \
+  --lr_warmup_steps $LR_WARMUP \
+  --snr_gamma 5.0 \
+  --adam_weight_decay 0.01 \
   --use_8bit_adam \
-  --checkpointing_steps=$CHECKPOINTING_STEPS \
-  --seed=$SEED \
-  --validation_prompt=\"$VALID_PROMPT\" \
-  --validation_epochs=$VALID_EPOCHS \
-  --num_validation_images=$NUM_VAL_IMAGES \
-  --dataloader_num_workers=$WORKERS \
-  --report_to=$REPORT_TO"
-[ "$TRAIN_TEXT_ENCODER" = "true" ] && ACCEL_CMD="$ACCEL_CMD --train_text_encoder"
+  --checkpointing_steps $CHECK_STEPS \
+  --seed 42 \
+  --validation_prompt "$VALID_PROMPT" \
+  --validation_epochs 1 \
+  --num_validation_images 10 \
+  --dataloader_num_workers 4 \
+  --report_to wandb \
+  $( [ $TRAIN_TEXT_ENCODER = true ] && echo --train_text_encoder )
 
-echo "$ACCEL_CMD"
-eval $ACCEL_CMD
-EXIT_CODE=$?
+EXIT=$?
+echo ">>> Training exit code: $EXIT"
 
 ###############################################################################
-#                                   Cleanup                                   
+#                                 Cleanup                                     #
 ###############################################################################
-echo "Training exit code: $EXIT_CODE"
 rm -rf "$CACHE_DIR"
-echo "==========  Job finished at $(date)  =========="
-exit $EXIT_CODE
+echo "==========  Job finished at $(date) =========="
+exit $EXIT
