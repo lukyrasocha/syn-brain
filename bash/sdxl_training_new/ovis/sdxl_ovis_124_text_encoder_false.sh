@@ -2,14 +2,14 @@
 ###############################################################################
 #                         Job configuration (LSF)                             #
 ###############################################################################
-#BSUB -J train_ovis_text_encoder_rank_128
+#BSUB -J train_ovis_text_encoder_rank_128_text_encoder_false
 #BSUB -q gpua100
 #BSUB -W 24:00
 #BSUB -n 4
 #BSUB -R "rusage[mem=32GB] span[hosts=1]"
 #BSUB -gpu "num=1:mode=exclusive_process"
-#BSUB -o bash/bash_outputs/train_sdxl_gemini_rank_128.%J.out
-#BSUB -e bash/bash_outputs/train_sdxl_gemini_rank_128.%J.err
+#BSUB -o bash/bash_outputs/train_ovis_text_encoder_rank_128_text_encoder_false.%J.out
+#BSUB -e bash/bash_outputs/train_ovis_text_encoder_rank_128_text_encoder_false.%J.err
 #BSUB -B
 #BSUB -N
 
