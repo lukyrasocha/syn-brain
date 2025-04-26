@@ -3,6 +3,7 @@
 /wandb/
 /models/
 /bash/bash_outputs/
+/cache/
 # Mac OS-specific storage files
 .DS_Store
 
