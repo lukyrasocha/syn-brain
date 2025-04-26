@@ -4,7 +4,7 @@ import PIL.Image
 from google import genai
 from tqdm import tqdm  
 
-API_KEY = "api" 
+API_KEY="AIzaSyCsi7yEKMidUVKU4PCPasOXNncv6XlKW0U"
 client = genai.Client(api_key=API_KEY)
 
 

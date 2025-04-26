@@ -8,6 +8,10 @@ from PIL import Image
 from transformers import AutoModelForCausalLM
 from tqdm import tqdm  
 
+
+def get_class_from_filename(filename):
+    return filename.split("_")[0].lower()
+
 def generate_prompt(class_name):
     if class_name == "notumor":
         return (
@@ -88,9 +92,8 @@ def process_all_images(directory: str, model, text_tokenizer, visual_tokenizer, 
 
     for full_path in tqdm(all_image_paths, desc="Processing images", unit="image"):
         try:
-            base_name = os.path.basename(file)
-            class_name = base_name.split("_")[0]
-
+            base_name = os.path.basename(full_path)
+            class_name = get_class_from_filename(base_name)
             prompt = generate_prompt(class_name)
 
             caption = caption_image(full_path, prompt, model, text_tokenizer, visual_tokenizer, max_partition)

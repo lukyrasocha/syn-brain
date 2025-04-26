@@ -13,6 +13,10 @@ from llava.model.builder import load_pretrained_model
 from llava.utils import disable_torch_init
 from llava.mm_utils import process_images, tokenizer_image_token, KeywordsStoppingCriteria
 
+
+def get_class_from_filename(filename):
+    return filename.split("_")[0].lower()
+
 def generate_prompt(class_name):
     if class_name == "notumor":
         return (
@@ -132,8 +136,10 @@ def describe_all_images(
 
     for full_path in tqdm(all_image_paths, desc="Processing images", unit="image"):
         try:
-            base_name = os.path.basename(file)
-            class_name = base_name.split("_")[0]
+
+            print(f"Processing {full_path}")
+            base_name = os.path.basename(full_path)
+            class_name = get_class_from_filename(base_name)
             prompt = generate_prompt(class_name)
             
             conv = base_conv.copy()
@@ -190,7 +196,6 @@ def describe_all_images(
             #if c == 10:
             #    break
 
-            print(f"Processed {full_path}")
         except Exception as e:
             print(f"Error processing {full_path}: {e}")
 
