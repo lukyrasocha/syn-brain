@@ -96,8 +96,11 @@ class ViT(nn.Module):
 
         self.pool, self.pos_enc, = pool, pos_enc
 
-        H, W = image_size
-        patch_h, patch_w = patch_size
+        H = image_size
+        W = image_size
+        patch_h = patch_size
+        patch_w = patch_size
+
         assert H % patch_h == 0 and W % patch_w == 0, 'Image dimensions must be divisible by the patch size'
 
         num_patches = (H // patch_h) * (W // patch_w)

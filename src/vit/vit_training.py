@@ -78,7 +78,7 @@ def prepare_training_dataloader(data_dir, batch_size, min_tumor_ratio=0.25, seed
 
     # Define transformations without normalization
     transform = transforms.Compose([
-        transforms.Resize((224, 224)),  # Resize images to 224x224
+        transforms.Resize((512, 512)),  # Resize images to 224x224
         transforms.ToTensor()
     ])
 
@@ -90,7 +90,7 @@ def prepare_training_dataloader(data_dir, batch_size, min_tumor_ratio=0.25, seed
 
     # Define transformations with normalization
     transform_with_norm = transforms.Compose([
-        transforms.Resize((224, 224)),  # Resize images to 224x224
+        transforms.Resize((512, 512)),  # Resize images to 224x224
         transforms.ToTensor(),
         transforms.Normalize(mean, std)
     ])
@@ -113,7 +113,7 @@ def prepare_dataloaders(batch_size, split_file='data/ViT_training/validation.jso
 
     # Define transformations with normalization
     transform = transforms.Compose([
-        transforms.Resize((224, 224)),  # Resize images to 224x224
+        transforms.Resize((512, 512)),  # Resize images to 224x224
         transforms.ToTensor(),
         transforms.Normalize(mean, std)
     ])
@@ -147,9 +147,16 @@ def main(args):
     # Prepare the validation and test data loaders using the calculated mean and std
     val_loader, test_loader = prepare_dataloaders(batch_size=args.batch_size, split_file=split_file, mean=mean, std=std)
 
-    model = ViT(image_size=args.image_size, patch_size=args.patch_size, channels=args.channels,
-                embed_dim=args.embed_dim, num_heads=args.num_heads, num_layers=args.num_layers,
-                pos_enc=args.pos_enc, pool=args.pool, dropout=args.dropout, fc_dim=args.fc_dim,
+    model = ViT(image_size=args.image_size, 
+                patch_size=args.patch_size, 
+                channels=args.channels,
+                embed_dim=args.embed_dim, 
+                num_heads=args.num_heads,
+                num_layers=args.num_layers,
+                pos_enc=args.pos_enc, 
+                pool=args.pool, 
+                dropout=args.dropout, 
+                fc_dim=args.fc_dim,
                 num_classes=args.num_classes)
 
     if torch.cuda.is_available():
@@ -197,17 +204,17 @@ def main(args):
             val_loss /= len(val_loader)
             print(f'-- train loss {train_loss:.3f} -- validation accuracy {acc:.3f} -- validation loss: {val_loss:.3f}')
             if val_loss <= best_val_loss:
-                torch.save(model.state_dict(), 'model.pth')
+                torch.save(model.state_dict(), args.model_dir)
                 best_val_loss = val_loss
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train a Vision Transformer model")
     parser.add_argument('--train_data_dir', type=str, default='data/raw/Train_All_Images', help='Directory containing training images')
-    parser.add_argument('--split_file', type=str, default='data/ViT_training/validation.json', help='Path to the JSON file containing validation and test splits')
+    parser.add_argument('--split_file', type=str, default='data/vit_training/validation.json', help='Path to the JSON file containing validation and test splits')
     parser.add_argument('--batch_size', type=int, default=16, help='Batch size for training and evaluation')
     parser.add_argument('--min_tumor_ratio', type=float, default=0.25, help='Minimum ratio of tumor images in the training set')
-    parser.add_argument('--image_size', type=tuple, default=(224, 224), help='Size of the input images')
-    parser.add_argument('--patch_size', type=tuple, default=(16, 16), help='Size of the patches')
+    parser.add_argument('--image_size', type=int, default=512, help='Size of the input images')
+    parser.add_argument('--patch_size', type=int, default=16, help='Size of the patches')
     parser.add_argument('--channels', type=int, default=3, help='Number of channels in the input images')
     parser.add_argument('--embed_dim', type=int, default=128, help='Embedding dimension')
     parser.add_argument('--num_heads', type=int, default=4, help='Number of attention heads')
@@ -223,6 +230,7 @@ if __name__ == "__main__":
     parser.add_argument('--weight_decay', type=float, default=1e-3, help='Weight decay')
     parser.add_argument('--gradient_clipping', type=float, default=1.0, help='Gradient clipping value')
     parser.add_argument('--seed', type=int, default=1, help='Random seed for reproducibility')
+    parser.add_argument('--model_dir', type=str, default='models/vit/model.pth', help='Name for the model to save')
 
     args = parser.parse_args()
 
