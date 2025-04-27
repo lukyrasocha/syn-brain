@@ -25,16 +25,14 @@ def create_metadata_jsonl(input_json_path: str, base_name: str, output_dir: str)
 			img_path_from_json = entry.get("path")
 
 			if not (img_name and caption):
-				print(f"  skipping, missing image/text → {entry!r}")
+				print(f"skipping, missing image/text {entry}")
 				continue
-
 			if "Train_All_Images" in img_path_from_json:
 				split = "train"
 			elif "Test_All_Images" in img_path_from_json:
 				split = "test"
 			else:
 				split = None
-
 			if split is None:
 				print(f"image not found in either root")
 				continue
