@@ -58,6 +58,7 @@ if __name__ == "__main__":
 		("captions/captions_gemini.json",    "metadata_gemini"),
 		("captions/captions_llava_med.json", "metadata_llava_med"),
 		("captions/captions_ovis_large.json","metadata_ovis_large"),
+		("captions/captions_gemma.json",   "metadata_gemma_better"),
 	]
 
 	for in_json, base in tasks:
