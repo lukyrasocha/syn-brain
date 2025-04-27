@@ -92,7 +92,7 @@ LR=1e-4
 LR_WARMUP=1000
 CHECK_STEPS=500
 
-OUTPUT_DIR="$PROJECT_DIR/models/llava_${LSB_JOBID}_${RANK}_gpua100_$( [ $TRAIN_TEXT_ENCODER = true ] && echo text_encoder || echo unet_only )"
+OUTPUT_DIR="$PROJECT_DIR/models/llava_${LSB_JOBID}_${RANK}_gpua100_$( [ $TRAIN_TEXT_ENCODER = true ] && echo text_encoder || echo unet_only )_fixed"
 mkdir -p "$OUTPUT_DIR"
 
 VALID_PROMPT="Brain MRI shows a large, irregularly shaped, hyperintense glioma in the right temporal lobe, with surrounding edema and mass effect. No other abnormalities are evident." \
