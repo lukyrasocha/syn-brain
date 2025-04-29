@@ -47,7 +47,7 @@ export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 ###                      Inference Parameters                       ###
 ### ————————————————————————————————————————————————————————————— ###
 # Model name/folder - can be passed as first argument to the script
-MODEL_NAME="${1-XXX}"  # REPLACE XXX with the model name
+MODEL_NAME="${1-llava_24816638_248_gpua100_text_encoder_fixed}"  # REPLACE XXX with the model name
 
 # Derived paths - following the structure from the training script
 LORA_ROOT="$PROJECT_DIR/models/${MODEL_NAME}"
