@@ -40,12 +40,12 @@ echo "W&B cache/config directory set to: $WANDB_DIR"
 ###                    Training Parameters                        ###
 ### ————————————————————————————————————————————————————————————— ###
 # training
-RESOLUTION=1024
+RESOLUTION=512
 BATCH_SIZE=2
 ACCUM_STEPS=8
 MAX_STEPS=20000  
-LR=0.0001
-RANK=256
+LR=1e-4
+RANK=248
 SEED=42
 VALID_EPOCHS=1
 NUM_VAL_IMAGES=10
