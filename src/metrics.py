@@ -86,12 +86,14 @@ def compute_kid(x, y, subset_size=10, n_subsets=20):
     return np.mean(scores)
 
 # Clip Score
-def compute_clip_text_image_score(captions, images_tensor, clip_model, device):
+def compute_clip(captions, images_tensor, clip_model, device):
     clip_model = clip_model.to(device)
     clip_model.eval()
 
+    # truncate captions
+    truncated_captions = [caption[:300] for caption in captions]  # 300 chars
     with torch.no_grad():
-        text_tokens = clip.tokenize(captions).to(device)
+        text_tokens = clip.tokenize(truncated_captions).to(device)
         text_features = clip_model.encode_text(text_tokens)
         text_features = text_features / text_features.norm(dim=-1, keepdim=True)
 
@@ -165,7 +167,9 @@ def evaluate_run(gen_folder, captions_path, real_stats_path, model, clip_model, 
     if score_type in ["all", "clip"]:
         gen_images_tensor_clip = load_image_tensor_dataset(gen_folder, clip_preprocess)
         with open(captions_path, 'r') as f:
-            captions = [line.strip() for line in f]
+            json_lines = [json.loads(line) for line in f]
+            json_lines.sort(key=lambda x: x['file_name'])
+            captions = [entry['text'] for entry in json_lines]
         results['clip_score'] = compute_clip_text_image_score(captions, gen_images_tensor_clip, clip_model, device)
 
     return results
@@ -198,15 +202,20 @@ if __name__ == "__main__":
         )
         for key, value in results.items():
             print(f"{key.upper()}: {value}")
-
+            
+        
+        norm_path = os.path.normpath(args.gen_folder)
+        parts = norm_path.split(os.sep)
+        run, stage = parts[-2], parts[-1]
+        
         results_folder = os.path.dirname(args.real_stats_path)
         os.makedirs(results_folder, exist_ok=True)
-        results_json_path = os.path.join(results_folder, "metrics_results.json")
+        results_json_path = os.path.join(results_folder, f"metrics_{run}-{stage}.json")
 
         full_results = {
             "fid": results.get("fid", "not_calculated"),
             "kid": results.get("kid", "not_calculated"),
-            "clip_score": results.get("clip_score", "not_calculated")
+            "clip": results.get("clip", "not_calculated")
         }
 
         with open(results_json_path, 'w') as f:
