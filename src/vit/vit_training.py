@@ -212,7 +212,7 @@ def main(args):
             val_tot, val_cor = 0.0, 0.0
             TP, FP, FN, TN = 0, 0, 0, 0
 
-            for image, label in val_loader:
+            for image, label in test_loader:
                 if torch.cuda.is_available():
                     image, label = image.to('cuda'), label.to('cuda')
 
@@ -256,8 +256,8 @@ def main(args):
             "epoch": e,
             "train_loss": train_loss,
             "train_acc": train_acc,
-            "val_loss": val_loss,
-            "val_acc": val_acc,
+            "test_loss": val_loss,
+            "test_acc": val_acc,
             "learning_rate": opt.param_groups[0]["lr"],
             "val_TP": TP,
             "val_FP": FP,
