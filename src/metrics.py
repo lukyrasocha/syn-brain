@@ -91,7 +91,7 @@ def compute_clip(captions, images_tensor, clip_model, device):
     clip_model.eval()
 
     # truncate captions
-    truncated_captions = [caption[:300] for caption in captions]  # 300 chars
+    truncated_captions = [caption[:280] for caption in captions]  # 300 chars
     with torch.no_grad():
         text_tokens = clip.tokenize(truncated_captions).to(device)
         text_features = clip_model.encode_text(text_tokens)

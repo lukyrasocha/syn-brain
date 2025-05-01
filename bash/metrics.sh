@@ -20,5 +20,5 @@ pip install git+https://github.com/openai/CLIP.git
 #python src/metrics.py --extract_real
 #python src/metrics.py --score_type "no_clip" --gen_folder "data/synthetic_bad"
 python src/metrics.py   --score_type "all" \
-                        --gen_folder "generated_images/llava_24816638_248_gpua100_text_encoder_fixed/checkpoint-10500" \
+                        --gen_folder "generated_images/llava_24821078_128_gpua100_text_encoder/checkpoint-10500" \
                         --captions_path "data/preprocessed_json_files/metadata_llava_med_test.jsonl"
