@@ -4,6 +4,7 @@
 /models/
 /bash/bash_outputs/
 /cache/
+/generated_images/
 # Mac OS-specific storage files
 .DS_Store
 

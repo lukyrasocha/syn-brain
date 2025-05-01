@@ -15,9 +15,10 @@
 
 source /work3/s243867/miniconda3/etc/profile.d/conda.sh
 conda activate adlcv
+pip install git+https://github.com/openai/CLIP.git
 
 #python src/metrics.py --extract_real
 #python src/metrics.py --score_type "no_clip" --gen_folder "data/synthetic_bad"
 python src/metrics.py   --score_type "all" \
-                        --gen_folder "data/noise" \
-                        --captions_path "data/preprocessed_json_files/metadata_ovis_large_test.jsonl"
+                        --gen_folder "generated_images/llava_24816638_248_gpua100_text_encoder_fixed/checkpoint-10500" \
+                        --captions_path "data/preprocessed_json_files/metadata_llava_med_test.jsonl"

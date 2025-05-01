@@ -47,7 +47,7 @@ export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 ###                      Inference Parameters                       ###
 ### ————————————————————————————————————————————————————————————— ###
 # Model name/folder - can be passed as first argument to the script
-MODEL_NAME="${1-XXX}"  # REPLACE XXX with the model name
+MODEL_NAME="${1-llava_24821078_128_gpua100_text_encoder}"  # REPLACE XXX with the model name
 
 # Derived paths - following the structure from the training script
 LORA_ROOT="$PROJECT_DIR/models/${MODEL_NAME}"
@@ -57,7 +57,7 @@ OUT_ROOT="$PROJECT_DIR/generated_images/${MODEL_NAME}"
 mkdir -p "$OUT_ROOT"
 
 # Path to metadata JSON file containing prompts and filenames
-METADATA_JSON="$PROJECT_DIR/data/preprocessed_json_files/metadata_gemini_test.jsonl"
+METADATA_JSON="$PROJECT_DIR/data/preprocessed_json_files/metadata_llava_med_test.jsonl"
 
 # Inference parameters
 BATCH_SIZE=4
