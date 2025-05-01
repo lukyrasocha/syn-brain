@@ -170,7 +170,7 @@ def evaluate_run(gen_folder, captions_path, real_stats_path, model, clip_model, 
             json_lines = [json.loads(line) for line in f]
             json_lines.sort(key=lambda x: x['file_name'])
             captions = [entry['text'] for entry in json_lines]
-        results['clip_score'] = compute_clip_text_image_score(captions, gen_images_tensor_clip, clip_model, device)
+        results['clip_score'] = compute_clip(captions, gen_images_tensor_clip, clip_model, device)
 
     return results
 
