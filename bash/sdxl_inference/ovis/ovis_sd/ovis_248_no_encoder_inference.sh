@@ -9,8 +9,8 @@
 ### ————————————————————————————————————————————————————————————— ###
 ###                       Job Configuration                       ###
 ### ————————————————————————————————————————————————————————————— ###
-#BSUB -J sdxl_lora_inference              # job name
-#BSUB -q gpua100                          # queue
+#BSUB -J ovis_sd_248              # job name
+#BSUB -q gpuv100                          # queue
 #BSUB -W 04:00                            # walltime (hh:mm)
 #BSUB -n 4                                # CPU cores
 #BSUB -R "rusage[mem=32GB] span[hosts=1]" # memory per core
@@ -47,7 +47,7 @@ export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 ###                      Inference Parameters                       ###
 ### ————————————————————————————————————————————————————————————— ###
 # Model name/folder - can be passed as first argument to the script
-MODEL_NAME="${1-XXX}"  # REPLACE XXX with the model name
+MODEL_NAME="${1-ovis/model_24833293_248_gpua100}"  # REPLACE XXX with the model name
 
 # Derived paths - following the structure from the training script
 LORA_ROOT="$PROJECT_DIR/models/${MODEL_NAME}"
@@ -72,7 +72,7 @@ echo "Job ID: $LSB_JOBID on $(hostname) at $(date)"
 echo "Model path: $LORA_ROOT"
 echo "Output path: $OUT_ROOT"
 
-python src/testing_inference_pipeline.py \
+python src/testing_inference_pipeline_sd.py \
     --lora_root "$LORA_ROOT" \
     --out_root "$OUT_ROOT" \
     --metadata_json "$METADATA_JSON" \
