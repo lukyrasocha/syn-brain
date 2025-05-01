@@ -213,12 +213,18 @@ if __name__ == "__main__":
         results_json_path = os.path.join(results_folder, f"metrics_{run}-{stage}.json")
 
         full_results = {
-            "fid": results.get("fid", "not_calculated"),
-            "kid": results.get("kid", "not_calculated"),
-            "clip": results.get("clip", "not_calculated")
+            k: float(v) if isinstance(v, np.floating) else v
+            for k, v in {
+                "fid": results.get("fid", "not_calculated"),
+                "kid": results.get("kid", "not_calculated"),
+                "clip": results.get("clip_score", "not_calculated")
+            }.items()
         }
 
         with open(results_json_path, 'w') as f:
             json.dump(full_results, f, indent=4)
 
         print(f"Metrics saved to {results_json_path}")
+        
+        
+
