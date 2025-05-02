@@ -10,7 +10,7 @@
 ###                       Job Configuration                       ###
 ### ————————————————————————————————————————————————————————————— ###
 #BSUB -J sdxl_lora_inference              # job name
-#BSUB -q gpua100                          # queue
+#BSUB -q gpu100                          # queue
 #BSUB -W 04:00                            # walltime (hh:mm)
 #BSUB -n 4                                # CPU cores
 #BSUB -R "rusage[mem=32GB] span[hosts=1]" # memory per core

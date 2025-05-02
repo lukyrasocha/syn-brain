@@ -119,10 +119,10 @@ def prepare_dataloaders(args, mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5)):
         transforms.Normalize(mean, std)
     ])
 
-    val_dataset = CustomDataset(args.val_test_data_dir, split_dict['validation'], transform=transform)
+    val_dataset =  CustomDataset(args.val_test_data_dir, split_dict['validation'], transform=transform)
     test_dataset = CustomDataset(args.val_test_data_dir, split_dict['test'], transform=transform)
 
-    val_loader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False)
+    val_loader =  DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False)
     test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False)
 
     return val_loader, test_loader
@@ -203,7 +203,7 @@ def main(args):
         train_loss /= len(train_loader)
         train_acc = train_cor / train_tot
         
-        # Validation
+        # validation
         example_images = {"TP": None, "FP": None, "FN": None, "TN": None}
         val_loss = 0
 
@@ -220,9 +220,9 @@ def main(args):
                 loss = loss_function(out, label)
                 val_loss += loss.item()
 
-                out = out.argmax(dim=1)
+                preds = out.argmax(dim=1)   # <--- Correctly define preds here
                 val_tot += float(image.size(0))
-                val_cor += float((label == out).sum().item())
+                val_cor += float((label == preds).sum().item())
 
                 # get images for TP, TN, FP, and FN to show in wandb
                 for img, true_label, pred_label in zip(image, label, preds):
@@ -239,10 +239,11 @@ def main(args):
                     if all(v is not None for v in example_images.values()):
                         break
 
-                    TP += ((preds == 1) & (label == 1)).sum().item()
-                    FP += ((preds == 1) & (label == 0)).sum().item()
-                    FN += ((preds == 0) & (label == 1)).sum().item()
-                    TN += ((preds == 0) & (label == 0)).sum().item()
+                # compute confusion matrix counts
+                TP += ((preds == 1) & (label == 1)).sum().item()
+                FP += ((preds == 1) & (label == 0)).sum().item()
+                FN += ((preds == 0) & (label == 1)).sum().item()
+                TN += ((preds == 0) & (label == 0)).sum().item()
 
             val_acc = val_cor / val_tot
             val_loss /= len(val_loader)
